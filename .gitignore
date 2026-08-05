@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 cache/
 output/
+인증키*.txt
