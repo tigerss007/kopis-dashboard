@@ -142,6 +142,16 @@
   }
   .map-region:hover, .map-region.hover { opacity: 0.7; stroke: var(--accent); stroke-width: 2; }
 
+  .facility-dot {
+    fill: #e0303f;
+    stroke: var(--surface-1);
+    stroke-width: 0.5;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.1s;
+  }
+  .facility-dot:hover { opacity: 1; stroke: #e0303f; }
+
   .region-legend {
     flex: 1;
     min-width: 220px;
@@ -368,6 +378,113 @@ DATA.facilities.forEach((f, i) => { f.idx = i; });
 
 const REGION_ORDER = Object.keys(KOREA_MAP.paths);
 
+/* 시설별 실제 좌표 데이터가 없어(시도/구군명만 보유), 각 시설을 해당 시도 폴리곤
+   내부의 한 점으로 결정적으로 배치한다. 같은 구군의 시설은 폴리곤 내부의 한
+   앵커 지점 주변에 모이도록 해 대략적인 분포를 보여준다(실제 주소 기준 아님). */
+function parsePathRings(d) {
+  const rings = [];
+  let current = null;
+  (d.match(/[ML][^ML]*/g) || []).forEach((tok) => {
+    const rest = tok.slice(1);
+    const comma = rest.indexOf(",");
+    const x = parseFloat(rest.slice(0, comma));
+    const y = parseFloat(rest.slice(comma + 1));
+    if (tok[0] === "M") {
+      if (current) rings.push(current);
+      current = [[x, y]];
+    } else if (current) {
+      current.push([x, y]);
+    }
+  });
+  if (current) rings.push(current);
+  return rings;
+}
+function ringArea(ring) {
+  let a = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const [x1, y1] = ring[i];
+    const [x2, y2] = ring[(i + 1) % ring.length];
+    a += x1 * y2 - x2 * y1;
+  }
+  return Math.abs(a / 2);
+}
+function ringBBox(ring) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  ring.forEach(([x, y]) => {
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+  });
+  return { minX, minY, maxX, maxY };
+}
+function pointInRing(x, y, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function mulberry32(seed) {
+  let t = seed >>> 0;
+  return function () {
+    t += 0x6d2b79f5;
+    let x = t;
+    x = Math.imul(x ^ (x >>> 15), x | 1);
+    x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function randomPointInRing(ring, bbox, rng, maxTries) {
+  for (let i = 0; i < maxTries; i++) {
+    const x = bbox.minX + rng() * (bbox.maxX - bbox.minX);
+    const y = bbox.minY + rng() * (bbox.maxY - bbox.minY);
+    if (pointInRing(x, y, ring)) return [x, y];
+  }
+  return [(bbox.minX + bbox.maxX) / 2, (bbox.minY + bbox.maxY) / 2];
+}
+
+const REGION_POLY = {};
+REGION_ORDER.forEach((sido) => {
+  const rings = parsePathRings(KOREA_MAP.paths[sido]);
+  const main = rings.reduce((a, b) => (ringArea(b) > ringArea(a) ? b : a));
+  REGION_POLY[sido] = { ring: main, bbox: ringBBox(main) };
+});
+
+const GUGUN_ANCHOR = {};
+function gugunAnchor(sido, gugun) {
+  const key = sido + "|" + gugun;
+  if (key in GUGUN_ANCHOR) return GUGUN_ANCHOR[key];
+  const poly = REGION_POLY[sido];
+  const pt = poly ? randomPointInRing(poly.ring, poly.bbox, mulberry32(hashStr(key)), 200) : null;
+  GUGUN_ANCHOR[key] = pt;
+  return pt;
+}
+
+const FACILITY_PT = {};
+function facilityPoint(f) {
+  if (f.idx in FACILITY_PT) return FACILITY_PT[f.idx];
+  const poly = REGION_POLY[f.sido];
+  if (!poly) return (FACILITY_PT[f.idx] = null);
+  const anchor = gugunAnchor(f.sido, f.gugun);
+  const rng = mulberry32(hashStr("facility:" + f.idx));
+  const span = Math.min(poly.bbox.maxX - poly.bbox.minX, poly.bbox.maxY - poly.bbox.minY);
+  const jitterR = Math.max(span * 0.045, 2.5);
+  let pt = null;
+  for (let i = 0; i < 40; i++) {
+    const ang = rng() * Math.PI * 2;
+    const rad = Math.sqrt(rng()) * jitterR;
+    const x = anchor[0] + Math.cos(ang) * rad;
+    const y = anchor[1] + Math.sin(ang) * rad;
+    if (pointInRing(x, y, poly.ring)) { pt = [x, y]; break; }
+  }
+  return (FACILITY_PT[f.idx] = pt || anchor);
+}
+
 /* dataviz 스킬의 sequential blue 램프(100~500) — 시설 수가 많을수록 진하게 */
 const SEQ_BLUE = ["#cde2fb", "#b7d3f6", "#9ec5f4", "#86b6ef", "#6da7ec", "#5598e7", "#3987e5", "#2a78d6", "#256abf"];
 function seqColor(count, max) {
@@ -435,6 +552,12 @@ function renderRegions() {
     return `<path d="${KOREA_MAP.paths[sido]}" class="map-region" data-region="${esc(sido)}" style="fill:${seqColor(c, maxCount)}"><title>${esc(sido)} (${c}개 시설)</title></path>`;
   }).join("");
 
+  const dots = DATA.facilities.map((f) => {
+    const pt = facilityPoint(f);
+    if (!pt) return "";
+    return `<circle class="facility-dot" cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="1.6" data-facility="${f.idx}"><title>${esc(f.name)} (${esc(f.sido)} ${esc(f.gugun)})</title></circle>`;
+  }).join("");
+
   const legend = REGION_ORDER.slice().sort((a, b) => a.localeCompare(b, "ko")).map((sido) => {
     const c = counts[sido] || 0;
     return `<div class="legend-row" data-region="${esc(sido)}">
@@ -455,9 +578,9 @@ function renderRegions() {
 
   return `
     <h2 class="view-title">시도를 선택하세요</h2>
-    <p class="hint">2025년 공연 실적이 있는 시설만 표시됩니다. 지도는 단순화된 경계라 실제 행정경계와 세부 형태가 다를 수 있습니다. 색이 진할수록 시설이 많습니다.</p>
+    <p class="hint">2025년 공연 실적이 있는 시설만 표시됩니다. 지도는 단순화된 경계라 실제 행정경계와 세부 형태가 다를 수 있습니다. 색이 진할수록 시설이 많습니다. 점(●)은 각 공연시설이며, 실제 주소가 아니라 소속 시도·구군 내의 임의 위치에 표시됩니다 — 클릭하면 해당 시설로 이동합니다.</p>
     <div class="map-layout">
-      <svg viewBox="0 0 ${KOREA_MAP.width} ${KOREA_MAP.height}" class="korea-svg">${paths}</svg>
+      <svg viewBox="0 0 ${KOREA_MAP.width} ${KOREA_MAP.height}" class="korea-svg">${paths}${dots}</svg>
       <div class="region-legend">${legend}</div>
     </div>
     ${unmatchedHtml}
