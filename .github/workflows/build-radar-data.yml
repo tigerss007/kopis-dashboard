@@ -1,0 +1,41 @@
+name: Build KOPIS Radar Feed
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # 03:00 KST
+  workflow_dispatch: {}
+
+concurrency:
+  group: build-radar-data
+  cancel-in-progress: false
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build radar feed and push to scnd
+        env:
+          KOPIS_SERVICE_KEY: ${{ secrets.KOPIS_SERVICE_KEY }}
+          SCND_INGEST_URL: ${{ secrets.SCND_INGEST_URL }}
+          SCND_INGEST_API_KEY: ${{ secrets.SCND_INGEST_API_KEY }}
+        run: python web/build_radar_feed.py
+
+      - name: Upload feed artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kopis-radar-feed
+          path: |
+            output/kopis-radar.json
+            output/kopis-radar-address-issues.json
+          retention-days: 30
