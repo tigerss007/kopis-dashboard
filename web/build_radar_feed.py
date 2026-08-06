@@ -37,6 +37,8 @@ ISSUES_PATH = OUTPUT_DIR / "kopis-radar-address-issues.json"
 
 # scnd 쪽 값 확정 전까지는 미설정 상태로 두면 전송을 건너뛰고 로컬 파일만
 # 만든다(수집·주소보강 로직을 독립적으로 검증할 수 있게).
+# 반드시 www.scnd.kr을 가리켜야 한다 — apex(scnd.kr)는 308로 리다이렉트되고,
+# 그 과정에서 Authorization 헤더가 제거된다(push_to_scnd 참고).
 SCND_INGEST_URL = os.getenv("SCND_INGEST_URL")
 SCND_INGEST_API_KEY = os.getenv("SCND_INGEST_API_KEY")
 
@@ -198,7 +200,20 @@ def push_to_scnd(payload: dict) -> bool:
     last_exc: Exception | None = None
     for attempt in range(1, 4):
         try:
-            resp = requests.post(SCND_INGEST_URL, json=payload, headers=headers, timeout=30)
+            # allow_redirects=False: scnd.kr(apex)로 보내면 www.scnd.kr로 308
+            # 리다이렉트되는데, requests/curl 등 대부분의 HTTP 클라이언트는 보안상
+            # 크로스 호스트 리다이렉트를 따라갈 때 Authorization 헤더를 조용히
+            # 제거한다. 리다이렉트를 자동으로 따라가게 두면 이후 401/405로만
+            # 나타나서 원인 파악이 오래 걸린다(2026-08-06 실제로 겪음) —
+            # SCND_INGEST_URL은 반드시 www.scnd.kr로 설정해야 하고, 리다이렉트가
+            # 오면 설정 오류로 바로 실패시킨다.
+            resp = requests.post(SCND_INGEST_URL, json=payload, headers=headers, timeout=30, allow_redirects=False)
+            if resp.is_redirect:
+                raise RuntimeError(
+                    f"SCND_INGEST_URL이 리다이렉트됩니다({resp.status_code} -> {resp.headers.get('Location')}). "
+                    "www.scnd.kr을 직접 가리키도록 설정을 바로잡아야 합니다(리다이렉트를 따라가면 "
+                    "Authorization 헤더가 제거되어 401로 실패함)."
+                )
             resp.raise_for_status()
             logger.info("scnd ingest 전송 성공 (status=%s)", resp.status_code)
             return True
