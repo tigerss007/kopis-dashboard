@@ -4,6 +4,10 @@
 시설 마스터(prfplc, 지역 조인용) + 공연목록(pblprfr)을 모아
 지역->시설->관/공연목록 구조의 JSON을 만들고, template.html에 인라인 삽입해
 서버 없이 더블클릭으로 여는 단일 index.html을 생성한다.
+
+시설 주소·좌표·관ID는 prfplc 상세조회에서, 공연별 관 배정은 pblprfr 상세조회의
+mt13id에서 가져온다. 지역지도의 시설 점 위치(mapX/mapY)는 korea_paths.json에
+저장된 투영 상수(_build_map.py 참고)로 실제 위경도를 지도 SVG 좌표계에 투영한 값이다.
 """
 import json
 import logging
@@ -28,6 +32,7 @@ YEAR = 2025
 WEB_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = WEB_DIR / "template.html"
 OUTPUT_PATH = WEB_DIR / "index.html"
+KOREA_PATHS_PATH = WEB_DIR / "korea_paths.json"
 
 DETAIL_SLEEP_SEC = 0.2
 PERF_PROGRESS_EVERY = 500
@@ -207,6 +212,36 @@ def enrich_facility_details(client: KopisClient, cache: ResponseCache, facilitie
             logger.info("시설 상세(주소·관ID) 진행: %d/%d", i, total)
 
 
+def apply_map_projection(facilities: list[dict]) -> None:
+    """시설의 실제 lat/lng를 지역지도 SVG 좌표계(mapX/mapY)로 투영한다(in-place).
+
+    korea_paths.json의 "projection"은 _build_map.py가 지도 경계 SVG를 만들 때 쓴
+    투영식(경위도 -> x/y)의 상수다(같은 소스 GeoJSON으로 재생성해 기존 경로와
+    한 글자도 다르지 않음을 확인함, 2026-08-07). 같은 상수를 시설 좌표에 적용하면
+    지도 경계와 정확히 같은 좌표계 위에 점을 찍을 수 있다. projection 정보가 없으면
+    (korea_paths.json이 오래된 버전이면) 조용히 건너뛴다 — 프런트엔드가 mapX/mapY
+    없는 시설은 기존 임의 위치 배치로 대체한다.
+    """
+    if not KOREA_PATHS_PATH.exists():
+        logger.warning("%s 없음 — 지도 실좌표 투영을 건너뜁니다.", KOREA_PATHS_PATH)
+        return
+    korea_map = json.loads(KOREA_PATHS_PATH.read_text(encoding="utf-8"))
+    proj = korea_map.get("projection")
+    if not proj:
+        logger.warning("korea_paths.json에 projection 정보가 없어 지도 실좌표 투영을 건너뜁니다.")
+        return
+
+    cos_lat, proj_x_min, scale, lat_max = proj["cosLat"], proj["projXMin"], proj["scale"], proj["latMax"]
+    projected = 0
+    for f in facilities:
+        if f.get("lat") is None or f.get("lng") is None:
+            continue
+        f["mapX"] = round((f["lng"] * cos_lat - proj_x_min) * scale, 1)
+        f["mapY"] = round((lat_max - f["lat"]) * scale, 1)
+        projected += 1
+    logger.info("지도 실좌표 투영: %d/%d개 시설", projected, len(facilities))
+
+
 def fetch_performance_halls(client: KopisClient, cache: ResponseCache, facilities: list[dict]) -> None:
     """공연 각각을 상세조회(pblprfr/{mt20id})해 어느 관(mt13id) 소속인지 채운다(in-place).
 
@@ -286,6 +321,7 @@ def main():
 
     logger.info("=== 4/6: 시설 상세(주소·좌표·관ID) 보강 ===")
     enrich_facility_details(client, cache, facilities)
+    apply_map_projection(facilities)
 
     logger.info("=== 5/6: 공연별 상세(관ID) 조회 — 오래 걸릴 수 있습니다 ===")
     fetch_performance_halls(client, cache, facilities)

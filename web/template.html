@@ -494,6 +494,7 @@ function gugunAnchor(sido, gugun) {
 const FACILITY_PT = {};
 function facilityPoint(f) {
   if (f.idx in FACILITY_PT) return FACILITY_PT[f.idx];
+  if (f.mapX != null && f.mapY != null) return (FACILITY_PT[f.idx] = [f.mapX, f.mapY]);
   const poly = REGION_POLY[f.sido];
   if (!poly) return (FACILITY_PT[f.idx] = null);
   const anchor = gugunAnchor(f.sido, f.gugun);
@@ -605,7 +606,7 @@ function renderRegions() {
 
   return `
     <h2 class="view-title">시도를 선택하세요</h2>
-    <p class="hint">2025년 공연 실적이 있는 시설만 표시됩니다. 지도는 단순화된 경계라 실제 행정경계와 세부 형태가 다를 수 있습니다. 색이 진할수록 시설이 많습니다. 점(●)은 각 공연시설이며, 실제 주소가 아니라 소속 시도·구군 내의 임의 위치에 표시됩니다 — 클릭하면 해당 시설로 이동합니다.</p>
+    <p class="hint">2025년 공연 실적이 있는 시설만 표시됩니다. 지도는 단순화된 경계라 실제 행정경계와 세부 형태가 다를 수 있습니다. 색이 진할수록 시설이 많습니다. 점(●)은 각 공연시설의 실제 주소 기준 위치입니다(KOPIS 상세정보에 주소가 없는 일부 시설은 소속 시도·구군 내의 임의 위치로 대체 표시됩니다) — 클릭하면 해당 시설로 이동합니다.</p>
     <div class="map-layout">
       <svg viewBox="0 0 ${KOREA_MAP.width} ${KOREA_MAP.height}" class="korea-svg">${paths}${dots}</svg>
       <div class="region-legend">${legend}</div>

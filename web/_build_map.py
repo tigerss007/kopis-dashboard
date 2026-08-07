@@ -102,5 +102,12 @@ print(f"viewBox: 0 0 {WIDTH:.1f} {HEIGHT:.1f}")
 print("total points:", total_pts)
 
 with open("korea_paths.json", "w", encoding="utf-8") as fp:
-    json.dump({"width": round(WIDTH, 1), "height": round(HEIGHT, 1), "paths": path_by_name}, fp, ensure_ascii=False)
+    json.dump({
+        "width": round(WIDTH, 1),
+        "height": round(HEIGHT, 1),
+        "paths": path_by_name,
+        # 실제 위경도(예: 시설 주소)를 이 SVG 좌표계에 그대로 투영하려면 project()와
+        # 동일한 공식이 필요하다 — build_site_data.py가 이 값을 읽어 재사용한다.
+        "projection": {"cosLat": cos_lat, "projXMin": proj_x_min, "scale": scale, "latMax": lat_max},
+    }, fp, ensure_ascii=False)
 print("wrote korea_paths.json")
