@@ -372,6 +372,8 @@
   .stat-tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .stat-tile .s-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
   .stat-tile .s-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat-tile-clickable { cursor: pointer; }
+  .stat-tile-clickable:hover { border-color: var(--accent); background: var(--hover-wash); }
 
   .rank-section { margin-bottom: 28px; }
   .rank-section h3 { font-size: 15px; margin: 0 0 10px; }
@@ -551,6 +553,10 @@ function regionCounts() {
 function setBreadcrumb() {
   const el = document.getElementById("breadcrumb");
   if (state.tab === "about" || state.tab === "summary") { el.innerHTML = ""; return; }
+  if (state.tab === "facilities" || state.tab === "halls") {
+    el.innerHTML = `<button data-nav="summary">요약</button> <span class="sep">›</span> <span class="current">${state.tab === "facilities" ? "전체 시설" : "전체 관"}</span>`;
+    return;
+  }
   const parts = [`<button data-nav="regions">지역지도</button>`];
   if (state.sido) {
     parts.push(`<span class="sep">›</span>`);
@@ -637,7 +643,7 @@ function sortFacilities(list, sortKey) {
 
 function computeFacilityList() {
   const q = state.facilityQuery.trim();
-  let list = facilitiesBySido(state.sido);
+  let list = state.tab === "facilities" ? DATA.facilities.slice() : facilitiesBySido(state.sido);
   if (q) list = list.filter((f) => f.name.includes(q));
   return sortFacilities(list, state.facilitySort);
 }
@@ -655,16 +661,90 @@ function renderFacilityList(sido) {
         <option value="rateAsc"${state.facilitySort === "rateAsc" ? " selected" : ""}>좌석점유율 낮은순</option>
       </select>
     </div>
-    <div class="facility-list" id="flist">${list.map(facilityCardHtml).join("") || `<div class="empty-msg">검색 결과가 없습니다.</div>`}</div>
+    <div class="facility-list" id="flist">${list.map((f) => facilityCardHtml(f, false)).join("") || `<div class="empty-msg">검색 결과가 없습니다.</div>`}</div>
   `;
 }
 
-function facilityCardHtml(f) {
+function renderAllFacilities() {
+  const total = DATA.facilities.length;
+  const list = computeFacilityList();
+  return `
+    <h2 class="view-title">전국 공연시설 (${total}개)</h2>
+    <div class="list-controls">
+      <input type="text" class="search-box" id="fsearch" placeholder="시설명 검색" value="${esc(state.facilityQuery)}">
+      <select class="sort-select" id="fsort">
+        <option value="name"${state.facilitySort === "name" ? " selected" : ""}>이름순</option>
+        <option value="rateDesc"${state.facilitySort === "rateDesc" ? " selected" : ""}>좌석점유율 높은순</option>
+        <option value="rateAsc"${state.facilitySort === "rateAsc" ? " selected" : ""}>좌석점유율 낮은순</option>
+      </select>
+    </div>
+    <div class="facility-list" id="flist">${list.map((f) => facilityCardHtml(f, true)).join("") || `<div class="empty-msg">검색 결과가 없습니다.</div>`}</div>
+  `;
+}
+
+function computeAllHallsList() {
+  const q = state.hallsQuery.trim();
+  let halls = [];
+  DATA.facilities.forEach((f) => f.halls.forEach((h) => halls.push({ ...h, facility: f.name, sido: f.sido, idx: f.idx })));
+  if (q) halls = halls.filter((h) => h.name.includes(q) || h.facility.includes(q));
+  const { key, dir } = state.hallsSort;
+  if (key) {
+    halls.sort((a, b) => {
+      if (key === "name" || key === "facility") return dir * String(a[key]).localeCompare(String(b[key]), "ko");
+      const av = a[key] == null ? -Infinity : a[key];
+      const bv = b[key] == null ? -Infinity : b[key];
+      return dir * (av - bv);
+    });
+  }
+  return halls;
+}
+
+function hallsSortArrow(key) {
+  if (state.hallsSort.key !== key) return "";
+  return `<span class="sort-arrow">${state.hallsSort.dir === 1 ? "▲" : "▼"}</span>`;
+}
+
+function allHallRowHtml(h) {
+  return `<tr data-facility="${h.idx}">
+    <td>
+      <div class="f-name">${esc(h.name)}</div>
+      <div class="f-sub">${esc(h.facility)} · ${esc(h.sido)}</div>
+    </td>
+    <td class="ticket-num">${h.seat > 0 ? h.seat.toLocaleString() + "석" : "미상"}</td>
+    <td class="ticket-num">${h.tickets.toLocaleString()}매</td>
+    <td>${h.occ == null ? "산출 불가" : h.occ.toFixed(1) + "%"}</td>
+    <td>${h.calendarOcc == null ? "산출 불가" : h.calendarOcc.toFixed(1) + "%"}</td>
+  </tr>`;
+}
+
+function renderAllHalls() {
+  const total = DATA.facilities.reduce((sum, f) => sum + f.halls.length, 0);
+  const list = computeAllHallsList();
+  return `
+    <h2 class="view-title">전국 관(공연장) 목록 (${total}개)</h2>
+    <div class="list-controls">
+      <input type="text" class="search-box" id="hsearch" placeholder="관 또는 시설명 검색" value="${esc(state.hallsQuery)}">
+    </div>
+    <table class="hall-table rank-table">
+      <thead><tr>
+        <th data-sort-halls="name">관(공연장)/시설${hallsSortArrow("name")}</th>
+        <th data-sort-halls="seat">좌석수${hallsSortArrow("seat")}</th>
+        <th data-sort-halls="tickets">총 티켓판매수${hallsSortArrow("tickets")}</th>
+        <th data-sort-halls="occ">좌석점유율${hallsSortArrow("occ")}</th>
+        <th data-sort-halls="calendarOcc">캘린더가동률${hallsSortArrow("calendarOcc")}</th>
+      </tr></thead>
+      <tbody id="hallsTbody">${list.map(allHallRowHtml).join("") || `<tr><td colspan="5" class="empty-msg">검색 결과가 없습니다.</td></tr>`}</tbody>
+    </table>
+  `;
+}
+
+function facilityCardHtml(f, showSido) {
   const rate = bestOcc(f);
+  const sub = showSido ? `${esc(f.sido)} ${esc(f.gugun || "")} · 관 ${f.halls.length}개` : `${esc(f.gugun || "")} · 관 ${f.halls.length}개`;
   return `<div class="facility-card" data-facility="${f.idx}">
     <div>
       <div class="f-name">${esc(f.name)}</div>
-      <div class="f-sub">${esc(f.gugun || "")} · 관 ${f.halls.length}개</div>
+      <div class="f-sub">${sub}</div>
     </div>
     <div class="f-meta">최고 좌석점유율<br>${rate >= 0 ? rate.toFixed(1) + "%" : "산출 불가"}</div>
   </div>`;
@@ -816,9 +896,9 @@ function renderSummary() {
     <h2 class="view-title">전국 공연시설 요약 · ${DATA.year}년</h2>
     <p class="hint">공연 실적이 있는 전국 시설·관 기준 요약입니다. 지역별로 살펴보려면 "지역지도" 탭을 이용하세요.</p>
     <div class="stat-grid">
-      <div class="stat-tile"><div class="s-label">시설 수</div><div class="s-value">${s.facilityCount.toLocaleString()}</div></div>
-      <div class="stat-tile"><div class="s-label">관(공연장) 수</div><div class="s-value">${s.hallCount.toLocaleString()}</div></div>
-      <div class="stat-tile"><div class="s-label">평균 좌석점유율</div><div class="s-value">${s.avgOcc.toFixed(1)}%</div></div>
+      <div class="stat-tile stat-tile-clickable" data-nav="all-facilities"><div class="s-label">시설 수</div><div class="s-value">${s.facilityCount.toLocaleString()}</div></div>
+      <div class="stat-tile stat-tile-clickable" data-nav="all-halls"><div class="s-label">관(공연장) 수</div><div class="s-value">${s.hallCount.toLocaleString()}</div></div>
+      <div class="stat-tile stat-tile-clickable" data-nav="all-halls-occ"><div class="s-label">평균 좌석점유율</div><div class="s-value">${s.avgOcc.toFixed(1)}%</div></div>
     </div>
     <div class="rank-section">
       <h3>관별 총 티켓판매수 Top 10</h3>
@@ -857,6 +937,8 @@ function renderAbout() {
 function hashFromState(s) {
   if (s.tab === "about") return "#/about";
   if (s.tab === "summary") return "#/summary";
+  if (s.tab === "facilities") return "#/facilities";
+  if (s.tab === "halls") return s.hallsSort && s.hallsSort.key ? `#/halls/${s.hallsSort.key}` : "#/halls";
   if (!s.sido) return "#/regions";
   if (s.facilityIdx == null) return `#/region/${encodeURIComponent(s.sido)}`;
   if (s.hallIdx != null) return `#/facility/${s.facilityIdx}/hall/${s.hallIdx}/perf`;
@@ -869,8 +951,15 @@ function stateFromHash(hash) {
   const s = {
     tab: "summary", sido: null, facilityIdx: null, showPerf: false, hallIdx: null,
     facilityQuery: "", facilitySort: "name", hallSort: { key: null, dir: 1 },
+    hallsQuery: "", hallsSort: { key: null, dir: 1 },
   };
   if (parts[0] === "about") { s.tab = "about"; return s; }
+  if (parts[0] === "facilities") { s.tab = "facilities"; return s; }
+  if (parts[0] === "halls") {
+    s.tab = "halls";
+    if (parts[1]) s.hallsSort = { key: decodeURIComponent(parts[1]), dir: -1 };
+    return s;
+  }
   if (parts[0] === "regions") { s.tab = "map"; return s; }
   if (parts[0] === "region" && parts[1]) { s.tab = "map"; s.sido = decodeURIComponent(parts[1]); return s; }
   if (parts[0] === "facility" && parts[1] != null) {
@@ -919,6 +1008,8 @@ function render() {
   let html;
   if (state.tab === "about") html = renderAbout();
   else if (state.tab === "summary") html = renderSummary();
+  else if (state.tab === "facilities") html = renderAllFacilities();
+  else if (state.tab === "halls") html = renderAllHalls();
   else if (!state.sido) html = renderRegions();
   else if (state.facilityIdx == null) html = renderFacilityList(state.sido);
   else {
@@ -931,19 +1022,31 @@ function render() {
   app.innerHTML = html;
   app.classList.add("view-enter");
 
-  if (state.tab === "map" && state.sido && state.facilityIdx == null) attachListControls();
+  if (state.tab === "map" && state.sido && state.facilityIdx == null) attachListControls(false);
+  else if (state.tab === "facilities") attachListControls(true);
+  else if (state.tab === "halls") attachHallsListControls();
   animateBars();
 }
 
-function attachListControls() {
+function attachListControls(showSido) {
   const input = document.getElementById("fsearch");
   const select = document.getElementById("fsort");
   const update = () => {
     const list = computeFacilityList();
-    document.getElementById("flist").innerHTML = list.map(facilityCardHtml).join("") || `<div class="empty-msg">검색 결과가 없습니다.</div>`;
+    document.getElementById("flist").innerHTML = list.map((f) => facilityCardHtml(f, showSido)).join("") || `<div class="empty-msg">검색 결과가 없습니다.</div>`;
   };
   if (input) input.addEventListener("input", () => { state.facilityQuery = input.value; update(); });
   if (select) select.addEventListener("change", () => { state.facilitySort = select.value; update(); });
+}
+
+function attachHallsListControls() {
+  const input = document.getElementById("hsearch");
+  if (!input) return;
+  input.addEventListener("input", () => {
+    state.hallsQuery = input.value;
+    const list = computeAllHallsList();
+    document.getElementById("hallsTbody").innerHTML = list.map(allHallRowHtml).join("") || `<tr><td colspan="5" class="empty-msg">검색 결과가 없습니다.</td></tr>`;
+  });
 }
 
 function systemPrefersDark() {
@@ -981,6 +1084,10 @@ document.addEventListener("click", (e) => {
     if (target === "regions") setHash("#/regions");
     else if (target === "facilities") setHash(`#/region/${encodeURIComponent(state.sido)}`);
     else if (target === "facility") setHash(`#/facility/${state.facilityIdx}`);
+    else if (target === "summary") setHash("#/summary");
+    else if (target === "all-facilities") setHash("#/facilities");
+    else if (target === "all-halls") setHash("#/halls");
+    else if (target === "all-halls-occ") setHash("#/halls/occ");
     return;
   }
 
@@ -989,6 +1096,15 @@ document.addEventListener("click", (e) => {
     const key = sortTh.dataset.sort;
     if (state.hallSort.key === key) state.hallSort.dir *= -1;
     else { state.hallSort.key = key; state.hallSort.dir = key === "name" ? 1 : -1; }
+    render();
+    return;
+  }
+
+  const sortHallsTh = e.target.closest("th[data-sort-halls]");
+  if (sortHallsTh) {
+    const key = sortHallsTh.dataset.sortHalls;
+    if (state.hallsSort.key === key) state.hallsSort.dir *= -1;
+    else { state.hallsSort.key = key; state.hallsSort.dir = (key === "name" || key === "facility") ? 1 : -1; }
     render();
     return;
   }
