@@ -44,3 +44,30 @@ def find_matches(target_name: str, candidate_names: list[str]) -> list[str]:
             partial.append(cand)
 
     return exact if exact else partial
+
+
+def build_hall_index(mt13s: list[dict]) -> dict[str, tuple[str, str]]:
+    """prfplc 상세조회 응답의 mt13s(관 목록) -> {정규화명: (원본 관명, mt13id)}."""
+    index: dict[str, tuple[str, str]] = {}
+    for mt13 in mt13s:
+        raw_name = (mt13.get("prfplcnm") or "").strip()
+        mt13id = mt13.get("mt13id") or None
+        norm = normalize_facility_name(raw_name)
+        if norm and mt13id:
+            index[norm] = (raw_name, mt13id)
+    return index
+
+
+def match_hall_id(hall_name: str, hall_index: dict[str, tuple[str, str]]) -> str | None:
+    """관 이름을 build_hall_index() 결과와 느슨하게 매칭해 mt13id를 찾는다."""
+    norm = normalize_facility_name(hall_name)
+    if norm in hall_index:
+        return hall_index[norm][1]
+    matches = find_matches(hall_name, [raw for raw, _ in hall_index.values()])
+    if not matches:
+        return None
+    target = matches[0]
+    for raw, mt13id in hall_index.values():
+        if raw == target:
+            return mt13id
+    return None

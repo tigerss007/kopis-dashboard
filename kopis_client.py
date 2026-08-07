@@ -82,7 +82,13 @@ class KopisClient:
         # 빈 응답 본문(길이 0)을 내려주는 경우가 실제 호출로 확인됨.
         if not xml_text.strip():
             return []
-        root = ET.fromstring(xml_text)
+        try:
+            root = ET.fromstring(xml_text)
+        except ET.ParseError as exc:
+            # 실제로 확인된 사례: 일부 공연 상세 응답에 이스케이프 안 된 특수문자/제어문자가
+            # 섞여 XML 자체가 깨져서 온다(2026-08-07). 재시도해도 서버가 같은 응답을 주므로
+            # KopisApiError로 바꿔 호출부의 기존 실패 처리(캐시에 None 기록 후 건너뜀)를 탄다.
+            raise KopisApiError(f"{endpoint} 응답 XML 파싱 실패: {exc}") from exc
 
         # KOPIS 에러 응답은 정상 응답의 루트/아이템 태그와 무관하게 항상
         # <dbs><db><returncode>..</returncode><errmsg>..</errmsg></db></dbs> 형태로 온다.

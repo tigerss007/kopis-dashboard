@@ -243,6 +243,32 @@
   .rate-num { font-variant-numeric: tabular-nums; width: 44px; text-align: right; flex-shrink: 0; }
   .occ-note { font-size: 11px; color: var(--text-muted); margin-top: 10px; }
 
+  .perf-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--accent-fill-100);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .perf-badge-empty {
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 400;
+    padding: 2px 8px 2px 0;
+  }
+  .unmatched-perf-link {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    width: fit-content;
+  }
+  .unmatched-perf-link:hover { color: var(--accent); }
+
   .perf-note, .calendar-unavailable-note {
     background: var(--accent-fill-100);
     color: var(--text-primary);
@@ -536,7 +562,8 @@ function setBreadcrumb() {
     } else {
       parts.push(`<button data-nav="facility">${esc(f.name)}</button>`);
       parts.push(`<span class="sep">›</span>`);
-      parts.push(`<span class="current">공연목록</span>`);
+      const hall = state.hallIdx != null ? f.halls[state.hallIdx] : null;
+      parts.push(`<span class="current">${hall ? esc(hall.name) + " 공연목록" : "공연목록"}</span>`);
     }
   }
   el.innerHTML = parts.join(" ");
@@ -655,7 +682,7 @@ function sortArrow(key) {
 function renderFacilityDetail(f) {
   const halls = sortHalls(f.halls, state.hallSort);
   const rows = halls.map((h) => `
-    <tr data-hall="${esc(h.name)}">
+    <tr data-hall="${h.idx}">
       <td>${esc(h.name)}</td>
       <td>${h.seat > 0 ? h.seat.toLocaleString() + "석" : "미상"}</td>
       <td>
@@ -665,7 +692,15 @@ function renderFacilityDetail(f) {
           <div class="rate-num">${h.occ.toFixed(1)}%</div>
         </div>`}
       </td>
+      <td>${(h.perf || []).length
+        ? `<span class="perf-badge">${h.perf.length}건</span>`
+        : `<span class="perf-badge perf-badge-empty">-</span>`}</td>
     </tr>`).join("");
+
+  const unmatched = f.perf || [];
+  const unmatchedLine = unmatched.length
+    ? `<div class="unmatched-perf-link" data-unmatched-perf>관 정보 없는 공연 ${unmatched.length}건 보기</div>`
+    : "";
 
   return `
     <div class="info-card">
@@ -678,15 +713,18 @@ function renderFacilityDetail(f) {
         <th data-sort="name">관(공연장)${sortArrow("name")}</th>
         <th data-sort="seat">좌석수${sortArrow("seat")}</th>
         <th data-sort="occ">좌석점유율${sortArrow("occ")}</th>
+        <th>공연목록</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <p class="occ-note">좌석점유율 = 총 티켓판매수 ÷ (좌석수 × 상연횟수). 열 제목을 클릭하면 정렬, 행을 클릭하면 이 시설의 2025년 공연목록을 볼 수 있습니다.</p>
+    <p class="occ-note">좌석점유율 = 총 티켓판매수 ÷ (좌석수 × 상연횟수). 열 제목을 클릭하면 정렬, 행을 클릭하면 그 관의 2025년 공연목록을 볼 수 있습니다.</p>
+    ${unmatchedLine}
   `;
 }
 
-function renderPerformances(f) {
-  const perf = (f.perf || []).slice().sort((a, b) => (a.from || "").localeCompare(b.from || ""));
+function renderPerformances(f, hallIdx) {
+  const hall = hallIdx != null ? f.halls[hallIdx] : null;
+  const perf = ((hall ? hall.perf : f.perf) || []).slice().sort((a, b) => (a.from || "").localeCompare(b.from || ""));
   const rows = perf.map((p) => `
     <tr>
       <td>${esc(p.name)}</td>
@@ -695,9 +733,16 @@ function renderPerformances(f) {
       <td><span class="state-badge">${esc(p.state)}</span></td>
     </tr>`).join("");
 
+  const title = hall
+    ? `${esc(f.name)} · ${esc(hall.name)} · 2025년 공연목록 (${perf.length}건)`
+    : `${esc(f.name)} · 관 정보 없는 공연 (${perf.length}건)`;
+  const note = hall
+    ? ""
+    : `<div class="perf-note">이 공연들은 KOPIS 공연 상세정보에 관(공연장) 정보가 없거나 이 시설의 관 목록과 매칭되지 않아, 어느 관인지 특정할 수 없습니다.</div>`;
+
   return `
-    <div class="perf-note">이 시설은 관(공연장)이 ${f.halls.length}개지만, KOPIS 공연목록 API는 관 단위 구분을 제공하지 않아 <strong>시설 전체 공연목록</strong>을 표시합니다.</div>
-    <h2 class="view-title">${esc(f.name)} · 2025년 공연목록 (${perf.length}건)</h2>
+    ${note}
+    <h2 class="view-title">${title}</h2>
     <table class="perf-table">
       <thead><tr><th>공연명</th><th>기간</th><th>장르</th><th>상태</th></tr></thead>
       <tbody>${rows || `<tr><td colspan="4" class="empty-msg">공연 기록이 없습니다.</td></tr>`}</tbody>
@@ -767,7 +812,7 @@ function renderAbout() {
       <h3>알려진 한계</h3>
       <ul>
         <li><strong>캘린더가동률(연간 실제 가동일수 ÷ 365일)은 제공하지 않습니다.</strong> KOPIS Open API는 관(공연장) 단위로 "상연 횟수"만 줄 뿐 실제 공연이 있었던 날짜별 데이터는 제공하지 않아, 정확한 가동일수를 산정할 방법이 없습니다. 하루 여러 회 공연하는 관에서는 상연 횟수가 실제 날짜 수보다 많아 대용치로 쓰기에도 부적합하다고 판단해 아예 표시하지 않기로 했습니다.</li>
-        <li>공연목록은 <strong>관(공연장) 단위 구분이 불가능</strong>해 시설 전체 기준으로 표시됩니다.</li>
+        <li>공연목록은 <strong>관(공연장) 단위로 구분</strong>해 표시합니다. KOPIS 공연 상세정보에 관 정보가 없거나 이 시설의 관 목록과 매칭되지 않는 일부 공연은 "관 정보 없음"으로 별도 표시됩니다.</li>
         <li>시설명 매칭에 실패한 일부 시설은 <strong>"지역 미상"</strong>으로 별도 표시됩니다.</li>
         <li>지도 경계는 단순화된 것으로, 실제 행정경계와 세부 형태가 다를 수 있습니다.</li>
       </ul>
@@ -781,6 +826,7 @@ function hashFromState(s) {
   if (s.tab === "summary") return "#/summary";
   if (!s.sido) return "#/regions";
   if (s.facilityIdx == null) return `#/region/${encodeURIComponent(s.sido)}`;
+  if (s.hallIdx != null) return `#/facility/${s.facilityIdx}/hall/${s.hallIdx}/perf`;
   if (!s.showPerf) return `#/facility/${s.facilityIdx}`;
   return `#/facility/${s.facilityIdx}/perf`;
 }
@@ -788,7 +834,7 @@ function hashFromState(s) {
 function stateFromHash(hash) {
   const parts = (hash || "").replace(/^#\/?/, "").split("/").filter(Boolean);
   const s = {
-    tab: "summary", sido: null, facilityIdx: null, showPerf: false,
+    tab: "summary", sido: null, facilityIdx: null, showPerf: false, hallIdx: null,
     facilityQuery: "", facilitySort: "name", hallSort: { key: null, dir: 1 },
   };
   if (parts[0] === "about") { s.tab = "about"; return s; }
@@ -797,7 +843,16 @@ function stateFromHash(hash) {
   if (parts[0] === "facility" && parts[1] != null) {
     const idx = Number(parts[1]);
     const f = DATA.facilities[idx];
-    if (f) { s.tab = "map"; s.facilityIdx = idx; s.sido = f.sido; s.showPerf = parts[2] === "perf"; return s; }
+    if (f) {
+      s.tab = "map"; s.facilityIdx = idx; s.sido = f.sido;
+      if (parts[2] === "hall" && parts[3] != null && f.halls[Number(parts[3])]) {
+        s.hallIdx = Number(parts[3]);
+        s.showPerf = true;
+      } else {
+        s.showPerf = parts[2] === "perf";
+      }
+      return s;
+    }
   }
   return s;
 }
@@ -835,7 +890,7 @@ function render() {
   else if (state.facilityIdx == null) html = renderFacilityList(state.sido);
   else {
     const f = DATA.facilities[state.facilityIdx];
-    html = state.showPerf ? renderPerformances(f) : renderFacilityDetail(f);
+    html = state.showPerf ? renderPerformances(f, state.hallIdx) : renderFacilityDetail(f);
   }
 
   app.classList.remove("view-enter");
@@ -920,7 +975,10 @@ document.addEventListener("click", (e) => {
   }
 
   const hallRow = e.target.closest("tr[data-hall]");
-  if (hallRow) { setHash(`#/facility/${state.facilityIdx}/perf`); return; }
+  if (hallRow) { setHash(`#/facility/${state.facilityIdx}/hall/${hallRow.dataset.hall}/perf`); return; }
+
+  const unmatchedLink = e.target.closest("[data-unmatched-perf]");
+  if (unmatchedLink) { setHash(`#/facility/${state.facilityIdx}/perf`); return; }
 });
 
 function syncRegionHover(sido, on) {

@@ -8,6 +8,7 @@
 import json
 import logging
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -17,7 +18,7 @@ from calc import aggregate  # noqa: E402
 from cache import ResponseCache  # noqa: E402
 from collect import collect_year_region  # noqa: E402
 from config import CACHE_DIR, REGION_CODE  # noqa: E402
-from facility_match import find_matches, normalize_facility_name  # noqa: E402
+from facility_match import build_hall_index, find_matches, match_hall_id, normalize_facility_name  # noqa: E402
 from kopis_client import KopisApiError, KopisClient  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -27,6 +28,9 @@ YEAR = 2025
 WEB_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = WEB_DIR / "template.html"
 OUTPUT_PATH = WEB_DIR / "index.html"
+
+DETAIL_SLEEP_SEC = 0.2
+PERF_PROGRESS_EVERY = 500
 
 
 def _cached_fetch_list(client: KopisClient, cache: ResponseCache, endpoint: str, params: dict) -> list[dict]:
@@ -40,6 +44,22 @@ def _cached_fetch_list(client: KopisClient, cache: ResponseCache, endpoint: str,
         records = []
     cache.set(endpoint, params, records)
     return records
+
+
+def _cached_fetch_detail(client: KopisClient, cache: ResponseCache, endpoint: str, item_id: str) -> tuple[dict | None, bool]:
+    """(detail, from_cache) 반환. 캐시 히트일 때는 호출부에서 sleep을 건너뛴다."""
+    cache_endpoint = f"{endpoint}_detail"
+    params = {"id": item_id}
+    cached = cache.get(cache_endpoint, params)
+    if cached is not None:
+        return cached, True
+    try:
+        record = client.fetch_detail(endpoint, item_id)
+    except KopisApiError as exc:
+        logger.warning("%s/%s 상세조회 실패: %s", endpoint, item_id, exc)
+        record = None
+    cache.set(cache_endpoint, params, record)
+    return record, False
 
 
 def fetch_facility_master(client: KopisClient, cache: ResponseCache) -> dict:
@@ -60,6 +80,7 @@ def fetch_facility_master(client: KopisClient, cache: ResponseCache) -> dict:
                 "sido": r.get("sidonm", ""),
                 "gugun": r.get("gugunnm", ""),
                 "hall_count": r.get("mt13cnt", ""),
+                "id": r.get("mt10id", ""),
             }
     return master
 
@@ -77,6 +98,7 @@ def fetch_performances(client: KopisClient, cache: ResponseCache) -> dict:
             if not fclty:
                 continue
             by_facility.setdefault(fclty, []).append({
+                "mt20id": r.get("mt20id", ""),
                 "name": r.get("prfnm", ""),
                 "from": r.get("prfpdfrom", ""),
                 "to": r.get("prfpdto", ""),
@@ -131,10 +153,12 @@ def build_facilities(rows: list[dict], master: dict, performances: dict) -> tupl
                 "name": fclty_name,
                 "sido": info["sido"] if info else "지역 미상",
                 "gugun": info["gugun"] if info else "",
+                "id": info["id"] if info else "",
                 "halls": [],
                 "perf": _lookup_performances(fclty_name, norm, perf_by_norm, perf_raw_keys, performances),
             }
         facilities[norm]["halls"].append({
+            "idx": len(facilities[norm]["halls"]),
             "name": row["공연장(관)"],
             "seat": row["좌석수"],
             "tickets": row["총 티켓판매수"],
@@ -145,21 +169,109 @@ def build_facilities(rows: list[dict], master: dict, performances: dict) -> tupl
     return list(facilities.values()), unmatched_region
 
 
+def enrich_facility_details(client: KopisClient, cache: ResponseCache, facilities: list[dict]) -> None:
+    """시설별 상세조회(prfplc/{mt10id})로 주소·좌표와 각 관의 mt13id를 채운다(in-place).
+
+    build_radar_feed.py가 이미 대부분의 시설을 상세조회해 캐시에 넣어뒀을 가능성이
+    높아(같은 cache_endpoint/params 규칙 사용) 실제로는 대부분 캐시 히트로 즉시 끝난다.
+    """
+    total = len(facilities)
+    for i, f in enumerate(facilities, start=1):
+        facility_id = f.pop("id", "")
+        f["addr"] = None
+        f["lat"] = None
+        f["lng"] = None
+        if not facility_id:
+            continue
+
+        detail, from_cache = _cached_fetch_detail(client, cache, "prfplc", facility_id)
+        if not from_cache:
+            time.sleep(DETAIL_SLEEP_SEC)
+        if not detail:
+            continue
+
+        raw_addr = (detail.get("adres") or "").strip()
+        f["addr"] = raw_addr or None
+        try:
+            f["lat"] = float(detail["la"]) if detail.get("la") else None
+            f["lng"] = float(detail["lo"]) if detail.get("lo") else None
+        except (TypeError, ValueError):
+            f["lat"], f["lng"] = None, None
+
+        hall_index = build_hall_index(detail.get("mt13s", []))
+        if hall_index:
+            for hall in f["halls"]:
+                hall["mt13id"] = match_hall_id(hall["name"], hall_index)
+
+        if i % 200 == 0 or i == total:
+            logger.info("시설 상세(주소·관ID) 진행: %d/%d", i, total)
+
+
+def fetch_performance_halls(client: KopisClient, cache: ResponseCache, facilities: list[dict]) -> None:
+    """공연 각각을 상세조회(pblprfr/{mt20id})해 어느 관(mt13id) 소속인지 채운다(in-place).
+
+    pblprfr 목록 API는 관 구분을 주지 않지만 상세 API는 mt13id를 준다(2026-08-06 실제
+    호출로 확인). 공연 건수가 많아(연간 2만건대) 처음 실행 시 오래 걸리지만 결과가
+    캐시되므로 이후 재빌드에서는 신규 공연만 새로 조회한다.
+    """
+    all_perf = [p for f in facilities for p in f["perf"]]
+    total = len(all_perf)
+    logger.info("공연 상세(관ID) 조회 대상: %d건", total)
+    for i, p in enumerate(all_perf, start=1):
+        mt20id = p.get("mt20id")
+        p["mt13id"] = None
+        if not mt20id:
+            continue
+        detail, from_cache = _cached_fetch_detail(client, cache, "pblprfr", mt20id)
+        if not from_cache:
+            time.sleep(DETAIL_SLEEP_SEC)
+        if detail:
+            p["mt13id"] = detail.get("mt13id") or None
+        if i % PERF_PROGRESS_EVERY == 0 or i == total:
+            logger.info("공연 상세(관ID) 진행: %d/%d", i, total)
+
+
+def assign_perf_to_halls(facilities: list[dict]) -> None:
+    """시설 단위로 모아뒀던 공연목록을 mt13id 기준으로 각 관에 나눠 담는다(in-place).
+
+    관 매칭이 안 된(mt13id가 없거나 이 시설의 어느 관과도 일치하지 않는) 공연은
+    시설의 perf에 "관 정보 없음" 목록으로 남긴다.
+    """
+    for f in facilities:
+        by_mt13id: dict[str, list[dict]] = {}
+        unmatched: list[dict] = []
+        for p in f["perf"]:
+            mt13id = p.pop("mt13id", None)
+            p.pop("mt20id", None)
+            if mt13id:
+                by_mt13id.setdefault(mt13id, []).append(p)
+            else:
+                unmatched.append(p)
+
+        for hall in f["halls"]:
+            hall_mt13id = hall.pop("mt13id", None)
+            hall["perf"] = by_mt13id.pop(hall_mt13id, []) if hall_mt13id else []
+
+        # 남은 값(이 시설의 어느 관과도 매칭되지 않은 mt13id 포함)은 관 정보 없음으로 묶는다.
+        leftover = unmatched + [p for plist in by_mt13id.values() for p in plist]
+        f["perf"] = leftover
+
+
 def main():
     client = KopisClient()
     cache = ResponseCache(CACHE_DIR)
 
-    logger.info("=== 1/3: %d년 전국 통계 수집 ===", YEAR)
+    logger.info("=== 1/6: %d년 전국 통계 수집 ===", YEAR)
     raw_records = collect_year_region(client, cache, YEAR, region=None)
     rows = aggregate({YEAR: raw_records})
     rows = [r for r in rows if r["좌석수"] > 0]  # 좌석수 미상(비공연 공간 등)은 웹페이지에서 제외
     logger.info("%d년 (시설,관) 행 수: %d", YEAR, len(rows))
 
-    logger.info("=== 2/3: 시설 마스터(지역 정보) 수집 ===")
+    logger.info("=== 2/6: 시설 마스터(지역 정보) 수집 ===")
     master = fetch_facility_master(client, cache)
     logger.info("시설 마스터 총 %d건", len(master))
 
-    logger.info("=== 3/3: 공연목록 수집 ===")
+    logger.info("=== 3/6: 공연목록 수집 ===")
     performances = fetch_performances(client, cache)
     total_perf = sum(len(v) for v in performances.values())
     logger.info("공연목록 총 %d건, 시설 수 %d", total_perf, len(performances))
@@ -172,6 +284,15 @@ def main():
             len(unmatched_region), sorted(set(unmatched_region)),
         )
 
+    logger.info("=== 4/6: 시설 상세(주소·좌표·관ID) 보강 ===")
+    enrich_facility_details(client, cache, facilities)
+
+    logger.info("=== 5/6: 공연별 상세(관ID) 조회 — 오래 걸릴 수 있습니다 ===")
+    fetch_performance_halls(client, cache, facilities)
+
+    logger.info("=== 6/6: 공연목록을 관별로 분리 ===")
+    assign_perf_to_halls(facilities)
+
     data = {"year": YEAR, "facilities": facilities}
     data_json = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
@@ -182,8 +303,13 @@ def main():
     OUTPUT_PATH.write_text(output, encoding="utf-8")
 
     size_mb = OUTPUT_PATH.stat().st_size / (1024 * 1024)
+    hall_perf = sum(len(h["perf"]) for f in facilities for h in f["halls"])
+    unmatched_perf = sum(len(f["perf"]) for f in facilities)
     logger.info("=== 완료 ===")
-    logger.info("시설 수: %d, 관 수: %d, 공연 수(연결됨): %d", len(facilities), len(rows), sum(len(f["perf"]) for f in facilities))
+    logger.info(
+        "시설 수: %d, 관 수: %d, 공연 수: %d(관 매칭 %d + 관 정보 없음 %d)",
+        len(facilities), len(rows), hall_perf + unmatched_perf, hall_perf, unmatched_perf,
+    )
     logger.info("지역 미상 시설 수: %d", len(set(unmatched_region)))
     logger.info("출력 파일: %s (%.2f MB)", OUTPUT_PATH, size_mb)
 
