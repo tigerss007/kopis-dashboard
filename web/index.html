@@ -738,16 +738,33 @@ function renderFacilityDetail(f) {
   `;
 }
 
+function parseKopisDate(s) {
+  if (!s) return null;
+  const parts = s.split(".");
+  if (parts.length !== 3) return null;
+  const d = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])));
+  return isNaN(d.getTime()) ? null : d;
+}
+function perfDays(p) {
+  const start = parseKopisDate(p.from), end = parseKopisDate(p.to);
+  if (!start || !end) return null;
+  const days = Math.round((end - start) / 86400000) + 1;
+  return days > 0 ? days : null;
+}
+
 function renderPerformances(f, hallIdx) {
   const hall = hallIdx != null ? f.halls[hallIdx] : null;
   const perf = ((hall ? hall.perf : f.perf) || []).slice().sort((a, b) => (a.from || "").localeCompare(b.from || ""));
-  const rows = perf.map((p) => `
+  const rows = perf.map((p) => {
+    const days = perfDays(p);
+    return `
     <tr>
       <td>${esc(p.name)}</td>
-      <td>${esc(p.from)} ~ ${esc(p.to)}</td>
+      <td>${esc(p.from)} ~ ${esc(p.to)}${days ? ` (${days}일)` : ""}</td>
       <td>${esc(p.genre)}</td>
       <td><span class="state-badge">${esc(p.state)}</span></td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 
   const title = hall
     ? `${esc(f.name)} · ${esc(hall.name)} · 2025년 공연목록 (${perf.length}건)`
