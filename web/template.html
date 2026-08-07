@@ -154,10 +154,11 @@
 
   .region-legend {
     flex: 1;
-    min-width: 220px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    min-width: 300px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: column;
+    gap: 4px 12px;
   }
   .legend-row {
     display: flex;
@@ -586,7 +587,9 @@ function renderRegions() {
     return `<circle class="facility-dot" cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="1.6" data-facility="${f.idx}"><title>${esc(f.name)} (${esc(f.sido)} ${esc(f.gugun)})</title></circle>`;
   }).join("");
 
-  const legend = REGION_ORDER.slice().sort((a, b) => a.localeCompare(b, "ko")).map((sido) => {
+  const legendOrder = REGION_ORDER.slice().sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+  const legendRows = Math.ceil(legendOrder.length / 2);
+  const legend = legendOrder.map((sido) => {
     const c = counts[sido] || 0;
     return `<div class="legend-row" data-region="${esc(sido)}">
       <span><span class="r-swatch" style="background:${seqColor(c, maxCount)}"></span><span class="r-name">${esc(sido)}</span></span>
@@ -609,7 +612,7 @@ function renderRegions() {
     <p class="hint">2025년 공연 실적이 있는 시설만 표시됩니다. 지도는 단순화된 경계라 실제 행정경계와 세부 형태가 다를 수 있습니다. 색이 진할수록 시설이 많습니다. 점(●)은 각 공연시설의 실제 주소 기준 위치입니다(KOPIS 상세정보에 주소가 없는 일부 시설은 소속 시도·구군 내의 임의 위치로 대체 표시됩니다) — 클릭하면 해당 시설로 이동합니다.</p>
     <div class="map-layout">
       <svg viewBox="0 0 ${KOREA_MAP.width} ${KOREA_MAP.height}" class="korea-svg">${paths}${dots}</svg>
-      <div class="region-legend">${legend}</div>
+      <div class="region-legend" style="grid-template-rows: repeat(${legendRows}, auto);">${legend}</div>
     </div>
     ${unmatchedHtml}
   `;
