@@ -806,6 +806,7 @@ function ticketRankRowHtml(h, i) {
     <td class="ticket-num">${h.seat > 0 ? h.seat.toLocaleString() + "석" : "미상"}</td>
     <td class="ticket-num">${h.tickets.toLocaleString()}매</td>
     <td>${h.occ == null ? "산출 불가" : h.occ.toFixed(1) + "%"}</td>
+    <td>${h.calendarOcc == null ? "산출 불가" : h.calendarOcc.toFixed(1) + "%"}</td>
   </tr>`;
 }
 
@@ -823,7 +824,7 @@ function renderSummary() {
       <h3>관별 총 티켓판매수 Top 10</h3>
       <p class="hint">시설 전체가 아니라 <strong>관(공연장) 하나 기준</strong> 순위입니다. 한 시설에 여러 관이 있으면 그중 하나만 여기 뜰 수 있어요.</p>
       <table class="hall-table rank-table">
-        <thead><tr><th></th><th>관(공연장)</th><th>좌석수</th><th>총 티켓판매수</th><th>좌석점유율</th></tr></thead>
+        <thead><tr><th></th><th>관(공연장)</th><th>좌석수</th><th>총 티켓판매수</th><th>좌석점유율</th><th>캘린더가동률</th></tr></thead>
         <tbody>${s.topTickets.map((h, i) => ticketRankRowHtml(h, i)).join("")}</tbody>
       </table>
     </div>
