@@ -18,6 +18,7 @@
     --accent: #2a78d6;
     --accent-fill-100: #cde2fb;
     --accent-fill-400: #3987e5;
+    --accent2-400: #c2790a;
     --hover-wash: rgba(42,120,214,0.08);
   }
   @media (prefers-color-scheme: dark) {
@@ -34,6 +35,7 @@
       --accent: #3987e5;
       --accent-fill-100: #184f95;
       --accent-fill-400: #2a78d6;
+      --accent2-400: #e0973a;
       --hover-wash: rgba(57,135,229,0.14);
     }
   }
@@ -50,6 +52,7 @@
     --accent: #3987e5;
     --accent-fill-100: #184f95;
     --accent-fill-400: #2a78d6;
+    --accent2-400: #e0973a;
     --hover-wash: rgba(57,135,229,0.14);
   }
 
@@ -241,6 +244,7 @@
   .rate-cell { display: flex; align-items: center; gap: 8px; min-width: 140px; }
   .rate-bar-track { flex: 1; height: 6px; background: var(--gridline); border-radius: 3px; overflow: hidden; }
   .rate-bar-fill { height: 100%; background: var(--accent-fill-400); border-radius: 3px; }
+  .calendar-bar-fill { background: var(--accent2-400); }
   .rate-num { font-variant-numeric: tabular-nums; width: 44px; text-align: right; flex-shrink: 0; }
   .occ-note { font-size: 11px; color: var(--text-muted); margin-top: 10px; }
 
@@ -696,6 +700,13 @@ function renderFacilityDetail(f) {
           <div class="rate-num">${h.occ.toFixed(1)}%</div>
         </div>`}
       </td>
+      <td>
+        ${h.calendarOcc == null ? "산출 불가" : `
+        <div class="rate-cell">
+          <div class="rate-bar-track"><div class="rate-bar-fill calendar-bar-fill" data-w="${Math.min(h.calendarOcc, 100)}" style="width:0%"></div></div>
+          <div class="rate-num">${h.calendarOcc.toFixed(1)}%</div>
+        </div>`}
+      </td>
       <td>${(h.perf || []).length
         ? `<span class="perf-badge">${h.perf.length}건</span>`
         : `<span class="perf-badge perf-badge-empty">-</span>`}</td>
@@ -711,17 +722,18 @@ function renderFacilityDetail(f) {
       <div class="f-name">${esc(f.name)}</div>
       <div class="f-sub">${esc(f.sido)} ${esc(f.gugun || "")}</div>
     </div>
-    <p class="calendar-unavailable-note">캘린더가동률(실제 가동일수 기준)은 KOPIS API가 관별 실제 공연일수 정보를 제공하지 않아 산정하지 않습니다.</p>
+    <p class="calendar-unavailable-note">캘린더가동률은 KOPIS가 관별 실제 공연일수를 API로 제공하지 않아, 각 공연의 상연기간(시작~종료)을 그 관이 점유한 기간으로 보고 근사 계산한 값입니다(겹치는 기간은 합쳐서 중복 집계하지 않음). 런 기간 중 쉬는 날(예: 매주 월요일 다크데이)이 있어도 그 기간엔 해당 공연에 배정된 것으로 간주하므로, 실제보다 다소 높게 나올 수 있습니다.</p>
     <table class="hall-table">
       <thead><tr>
         <th data-sort="name">관(공연장)${sortArrow("name")}</th>
         <th data-sort="seat">좌석수${sortArrow("seat")}</th>
         <th data-sort="occ">좌석점유율${sortArrow("occ")}</th>
+        <th data-sort="calendarOcc">캘린더가동률${sortArrow("calendarOcc")}</th>
         <th>공연목록</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <p class="occ-note">좌석점유율 = 총 티켓판매수 ÷ (좌석수 × 상연횟수). 열 제목을 클릭하면 정렬, 행을 클릭하면 그 관의 2025년 공연목록을 볼 수 있습니다.</p>
+    <p class="occ-note">좌석점유율 = 총 티켓판매수 ÷ (좌석수 × 상연횟수). 캘린더가동률 = 공연 상연기간 합집합 일수 ÷ 365일(추정치, 위 안내 참고). 열 제목을 클릭하면 정렬, 행을 클릭하면 그 관의 2025년 공연목록을 볼 수 있습니다.</p>
     ${unmatchedLine}
   `;
 }
@@ -790,7 +802,6 @@ function renderSummary() {
       <div class="stat-tile"><div class="s-label">관(공연장) 수</div><div class="s-value">${s.hallCount.toLocaleString()}</div></div>
       <div class="stat-tile"><div class="s-label">평균 좌석점유율</div><div class="s-value">${s.avgOcc.toFixed(1)}%</div></div>
     </div>
-    <p class="calendar-unavailable-note">캘린더가동률(실제 가동일수 기준)은 KOPIS API가 관별 실제 공연일수 정보를 제공하지 않아 산정하지 않습니다.</p>
     <div class="rank-section">
       <h3>관별 총 티켓판매수 Top 10</h3>
       <p class="hint">시설 전체가 아니라 <strong>관(공연장) 하나 기준</strong> 순위입니다. 한 시설에 여러 관이 있으면 그중 하나만 여기 뜰 수 있어요.</p>
@@ -815,7 +826,7 @@ function renderAbout() {
       </ul>
       <h3>알려진 한계</h3>
       <ul>
-        <li><strong>캘린더가동률(연간 실제 가동일수 ÷ 365일)은 제공하지 않습니다.</strong> KOPIS Open API는 관(공연장) 단위로 "상연 횟수"만 줄 뿐 실제 공연이 있었던 날짜별 데이터는 제공하지 않아, 정확한 가동일수를 산정할 방법이 없습니다. 하루 여러 회 공연하는 관에서는 상연 횟수가 실제 날짜 수보다 많아 대용치로 쓰기에도 부적합하다고 판단해 아예 표시하지 않기로 했습니다.</li>
+        <li><strong>캘린더가동률(%)</strong>은 정확한 실제 가동일수가 아니라 <strong>추정치</strong>입니다. KOPIS Open API가 관별 실제 공연 날짜 목록을 제공하지 않아, 대신 공연 상세정보의 상연기간(시작~종료)을 그 관이 해당 공연에 배정된 기간으로 보고, 여러 공연의 기간을 합집합(중복 제외)해 연간 일수로 나눴습니다. 런 기간 중 쉬는 요일이 있어도 그 기간 전체를 점유한 것으로 세므로 실제보다 다소 높게 나올 수 있습니다.</li>
         <li>공연목록은 <strong>관(공연장) 단위로 구분</strong>해 표시합니다. KOPIS 공연 상세정보에 관 정보가 없거나 이 시설의 관 목록과 매칭되지 않는 일부 공연은 "관 정보 없음"으로 별도 표시됩니다.</li>
         <li>시설명 매칭에 실패한 일부 시설은 <strong>"지역 미상"</strong>으로 별도 표시됩니다.</li>
         <li>지도 경계는 단순화된 것으로, 실제 행정경계와 세부 형태가 다를 수 있습니다.</li>

@@ -13,6 +13,7 @@ import json
 import logging
 import sys
 import time
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -36,6 +37,10 @@ KOREA_PATHS_PATH = WEB_DIR / "korea_paths.json"
 
 DETAIL_SLEEP_SEC = 0.2
 PERF_PROGRESS_EVERY = 500
+
+YEAR_START = date(YEAR, 1, 1)
+YEAR_END = date(YEAR, 12, 31)
+YEAR_DAYS = (YEAR_END - YEAR_START).days + 1
 
 
 def _cached_fetch_list(client: KopisClient, cache: ResponseCache, endpoint: str, params: dict) -> list[dict]:
@@ -292,6 +297,53 @@ def assign_perf_to_halls(facilities: list[dict]) -> None:
         f["perf"] = leftover
 
 
+def _parse_kopis_date(s: str | None) -> date | None:
+    try:
+        y, m, d = s.split(".")
+        return date(int(y), int(m), int(d))
+    except (AttributeError, ValueError, TypeError):
+        return None
+
+
+def compute_calendar_occupancy(facilities: list[dict]) -> None:
+    """관별로 공연 상연기간(from~to)의 합집합 일수 ÷ 365일로 캘린더가동률을 근사 계산한다(in-place).
+
+    KOPIS는 관별 실제 공연 "일자" 목록을 API로 주지 않는다(2026-08-04 확인, calc.py
+    참고). 대신 공연 하나하나의 상연기간(prfpdfrom~prfpdto)은 있으므로, "그 기간 동안
+    해당 프로덕션이 관을 사용했다"고 보고 기간 합집합 일수를 채운 것으로 센다 — 런 중
+    쉬는 요일이 있어도(예: 매주 월요일 다크데이) 그 관은 그 기간 동안 해당 공연에
+    배정돼 있었다고 보는 게 합리적이라는 판단(2026-08-08 사용자 논의). 여러 공연
+    기간이 겹치면 중복 집계하지 않도록 병합하고, 연도 밖으로 걸친 기간은 잘라낸다.
+    """
+    for f in facilities:
+        for h in f["halls"]:
+            intervals: list[tuple[date, date]] = []
+            for p in h.get("perf", []):
+                start, end = _parse_kopis_date(p.get("from")), _parse_kopis_date(p.get("to"))
+                if not start or not end:
+                    continue
+                if end < start:
+                    start, end = end, start
+                start, end = max(start, YEAR_START), min(end, YEAR_END)
+                if start <= end:
+                    intervals.append((start, end))
+
+            if not intervals:
+                h["calendarOcc"] = None
+                continue
+
+            intervals.sort()
+            merged = [intervals[0]]
+            for s, e in intervals[1:]:
+                last_s, last_e = merged[-1]
+                if s <= last_e:
+                    merged[-1] = (last_s, max(last_e, e))
+                else:
+                    merged.append((s, e))
+            covered_days = sum((e - s).days + 1 for s, e in merged)
+            h["calendarOcc"] = round(covered_days / YEAR_DAYS * 100, 1)
+
+
 def main():
     client = KopisClient()
     cache = ResponseCache(CACHE_DIR)
@@ -328,6 +380,7 @@ def main():
 
     logger.info("=== 6/6: 공연목록을 관별로 분리 ===")
     assign_perf_to_halls(facilities)
+    compute_calendar_occupancy(facilities)
 
     data = {"year": YEAR, "facilities": facilities}
     data_json = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
