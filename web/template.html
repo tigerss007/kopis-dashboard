@@ -165,6 +165,7 @@
   }
   .legend-row {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     padding: 7px 10px;
@@ -174,7 +175,23 @@
   }
   .legend-row:hover, .legend-row.hover { background: var(--hover-wash); }
   .legend-row .r-name { font-weight: 600; }
-  .legend-row .r-count { color: var(--text-muted); font-size: 12px; }
+  .legend-row .r-count { color: var(--text-secondary); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .legend-row .r-sub { flex-basis: 100%; margin: 2px 0 0 18px; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  .metric-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; }
+  .metric-label { font-size: 12px; color: var(--text-muted); margin-right: 4px; }
+  .metric-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--text-secondary);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+  }
+  .metric-btn:hover { border-color: var(--accent); }
+  .metric-btn.active { color: #fff; background: var(--accent); border-color: var(--accent); font-weight: 600; }
   .legend-row .r-swatch { width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; display: inline-block; vertical-align: middle; }
 
   .region-box {
@@ -583,14 +600,45 @@ function setBreadcrumb() {
   el.innerHTML = parts.join(" ");
 }
 
+/* 지역지도 색상·정렬 기준. 각 지표는 시도별 합계와 전국 대비 비율을 함께 보여준다. */
+const MAP_METRICS = {
+  facilities: { label: "시설 수", short: "시설", fmt: (n) => `${n.toLocaleString()}개` },
+  tickets: { label: "티켓판매수", short: "티켓", fmt: (n) => `${n.toLocaleString()}매` },
+  perf: { label: "공연 건수", short: "공연", fmt: (n) => `${n.toLocaleString()}건` },
+};
+let mapMetric = "facilities";
+
+function regionStats() {
+  const stats = {};
+  const total = { facilities: 0, tickets: 0, perf: 0 };
+  DATA.facilities.forEach((f) => {
+    const s = (stats[f.sido] = stats[f.sido] || { facilities: 0, tickets: 0, perf: 0 });
+    const tickets = f.halls.reduce((sum, h) => sum + (h.tickets || 0), 0);
+    // 공연 건수는 관별로 배정된 공연 + 관 정보 없는 공연(f.perf)을 모두 센다.
+    const perf = f.halls.reduce((sum, h) => sum + (h.perf || []).length, 0) + (f.perf || []).length;
+    s.facilities += 1; s.tickets += tickets; s.perf += perf;
+    total.facilities += 1; total.tickets += tickets; total.perf += perf;
+  });
+  return { stats, total };
+}
+
+function metricText(key, stat, total) {
+  const v = stat[key];
+  const pct = total[key] ? (v / total[key] * 100).toFixed(1) : "0.0";
+  return `${MAP_METRICS[key].fmt(v)} (${pct}%)`;
+}
+
 function renderRegions() {
   const counts = regionCounts();
   const unmatched = counts["지역 미상"] || 0;
-  const maxCount = Math.max(...REGION_ORDER.map((s) => counts[s] || 0));
+  const { stats, total } = regionStats();
+  const zero = { facilities: 0, tickets: 0, perf: 0 };
+  const valueOf = (sido) => (stats[sido] || zero)[mapMetric];
+  const maxCount = Math.max(...REGION_ORDER.map(valueOf));
 
   const paths = REGION_ORDER.map((sido) => {
-    const c = counts[sido] || 0;
-    return `<path d="${KOREA_MAP.paths[sido]}" class="map-region" data-region="${esc(sido)}" style="fill:${seqColor(c, maxCount)}"><title>${esc(sido)} (${c}개 시설)</title></path>`;
+    const c = valueOf(sido);
+    return `<path d="${KOREA_MAP.paths[sido]}" class="map-region" data-region="${esc(sido)}" style="fill:${seqColor(c, maxCount)}"><title>${esc(sido)} · ${esc(metricText(mapMetric, stats[sido] || zero, total))}</title></path>`;
   }).join("");
 
   const dots = DATA.facilities.map((f) => {
@@ -599,15 +647,22 @@ function renderRegions() {
     return `<circle class="facility-dot" cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="1.6" data-facility="${f.idx}"><title>${esc(f.name)} (${esc(f.sido)} ${esc(f.gugun)})</title></circle>`;
   }).join("");
 
-  const legendOrder = REGION_ORDER.slice().sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+  const legendOrder = REGION_ORDER.slice().sort((a, b) => valueOf(b) - valueOf(a));
   const legendRows = Math.ceil(legendOrder.length / 2);
+  const otherKeys = Object.keys(MAP_METRICS).filter((k) => k !== mapMetric);
   const legend = legendOrder.map((sido) => {
-    const c = counts[sido] || 0;
+    const stat = stats[sido] || zero;
     return `<div class="legend-row" data-region="${esc(sido)}">
-      <span><span class="r-swatch" style="background:${seqColor(c, maxCount)}"></span><span class="r-name">${esc(sido)}</span></span>
-      <span class="r-count">${c}개</span>
+      <span><span class="r-swatch" style="background:${seqColor(valueOf(sido), maxCount)}"></span><span class="r-name">${esc(sido)}</span></span>
+      <span class="r-count">${esc(metricText(mapMetric, stat, total))}</span>
+      <span class="r-sub">${otherKeys.map((k) => `${MAP_METRICS[k].short} ${esc(metricText(k, stat, total))}`).join(" · ")}</span>
     </div>`;
   }).join("");
+
+  const metricToggle = `<div class="metric-toggle" role="group" aria-label="지도 색상 기준">
+      <span class="metric-label">지도 색상 기준</span>
+      ${Object.keys(MAP_METRICS).map((k) => `<button type="button" class="metric-btn${k === mapMetric ? " active" : ""}" data-map-metric="${k}">${MAP_METRICS[k].label}</button>`).join("")}
+    </div>`;
 
   let unmatchedHtml = "";
   if (unmatched > 0) {
@@ -621,7 +676,8 @@ function renderRegions() {
 
   return `
     <h2 class="view-title">시도를 선택하세요</h2>
-    <p class="hint">2025년 공연 실적이 있는 시설만 표시됩니다. 지도는 단순화된 경계라 실제 행정경계와 세부 형태가 다를 수 있습니다. 색이 진할수록 시설이 많습니다. 점(●)은 각 공연시설의 실제 주소 기준 위치입니다(KOPIS 상세정보에 주소가 없는 일부 시설은 소속 시도·구군 내의 임의 위치로 대체 표시됩니다) — 클릭하면 해당 시설로 이동합니다.</p>
+    <p class="hint">2025년 공연 실적이 있는 시설만 표시됩니다. 지도는 단순화된 경계라 실제 행정경계와 세부 형태가 다를 수 있습니다. 색이 진할수록 선택한 기준(${MAP_METRICS[mapMetric].label})의 값이 큽니다. 괄호 안은 전국 대비 비율입니다. 점(●)은 각 공연시설의 실제 주소 기준 위치입니다(KOPIS 상세정보에 주소가 없는 일부 시설은 소속 시도·구군 내의 임의 위치로 대체 표시됩니다) — 클릭하면 해당 시설로 이동합니다.</p>
+    ${metricToggle}
     <div class="map-layout">
       <svg viewBox="0 0 ${KOREA_MAP.width} ${KOREA_MAP.height}" class="korea-svg">${paths}${dots}</svg>
       <div class="region-legend" style="grid-template-rows: repeat(${legendRows}, auto);">${legend}</div>
@@ -1091,6 +1147,9 @@ document.addEventListener("click", (e) => {
     setHash(tab === "map" ? lastMapHash : `#/${tab}`);
     return;
   }
+
+  const metricBtn = e.target.closest("[data-map-metric]");
+  if (metricBtn) { mapMetric = metricBtn.dataset.mapMetric; render(); return; }
 
   const nav = e.target.closest("[data-nav]");
   if (nav) {
