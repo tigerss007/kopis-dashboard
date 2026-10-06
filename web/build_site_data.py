@@ -13,7 +13,7 @@ import json
 import logging
 import sys
 import time
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -41,6 +41,10 @@ PERF_PROGRESS_EVERY = 500
 YEAR_START = date(YEAR, 1, 1)
 YEAR_END = date(YEAR, 12, 31)
 YEAR_DAYS = (YEAR_END - YEAR_START).days + 1
+
+# 모든 공연에 일괄 적용하는 준비(공연 앞)·철수(공연 뒤) 기간. KOPIS에는 실제 값이 없다.
+SETUP_DAYS = 3
+TEARDOWN_DAYS = 1
 
 
 def _cached_fetch_list(client: KopisClient, cache: ResponseCache, endpoint: str, params: dict) -> list[dict]:
@@ -305,43 +309,67 @@ def _parse_kopis_date(s: str | None) -> date | None:
         return None
 
 
+def _clip_to_year(start: date, end: date) -> tuple[date, date] | None:
+    start, end = max(start, YEAR_START), min(end, YEAR_END)
+    return (start, end) if start <= end else None
+
+
+def _union_days(intervals: list[tuple[date, date]]) -> int:
+    """겹치는 구간을 병합한 뒤 전체 일수(양끝 포함)를 센다."""
+    if not intervals:
+        return 0
+    intervals = sorted(intervals)
+    merged = [intervals[0]]
+    for s, e in intervals[1:]:
+        last_s, last_e = merged[-1]
+        if s <= last_e:
+            merged[-1] = (last_s, max(last_e, e))
+        else:
+            merged.append((s, e))
+    return sum((e - s).days + 1 for s, e in merged)
+
+
 def compute_calendar_occupancy(facilities: list[dict]) -> None:
-    """관별로 공연 상연기간(from~to)의 합집합 일수 ÷ 365일로 캘린더가동률을 근사 계산한다(in-place).
+    """관별 공연 일수와 캘린더가동률을 계산한다(in-place).
+
+    h["runDays"]      : 공연 상연기간(from~to)의 합집합 일수(2025년분만, 겹침 제외)
+    h["occupiedDays"] : 각 공연 앞뒤로 준비 SETUP_DAYS일·철수 TEARDOWN_DAYS일을 더한 기간의
+                        합집합 일수(2025년분만). 캘린더가동률의 분자.
+    h["calendarOcc"]  : occupiedDays ÷ 365 × 100
 
     KOPIS는 관별 실제 공연 "일자" 목록을 API로 주지 않는다(2026-08-04 확인, calc.py
     참고). 대신 공연 하나하나의 상연기간(prfpdfrom~prfpdto)은 있으므로, "그 기간 동안
-    해당 프로덕션이 관을 사용했다"고 보고 기간 합집합 일수를 채운 것으로 센다 — 런 중
-    쉬는 요일이 있어도(예: 매주 월요일 다크데이) 그 관은 그 기간 동안 해당 공연에
-    배정돼 있었다고 보는 게 합리적이라는 판단(2026-08-08 사용자 논의). 여러 공연
-    기간이 겹치면 중복 집계하지 않도록 병합하고, 연도 밖으로 걸친 기간은 잘라낸다.
+    해당 프로덕션이 관을 사용했다"고 보고 센다 — 런 중 쉬는 요일이 있어도(예: 매주
+    월요일 다크데이) 그 관은 그 기간 동안 해당 공연에 배정돼 있었다고 보는 게 합리적이라는
+    판단(2026-08-08 사용자 논의). 공연 전 무대 설치·리허설과 공연 후 철수에도 관을
+    쓰므로 모든 공연에 공통으로 앞 3일·뒤 1일을 더한다(2026-10-06 사용자 제안; KOPIS에
+    준비/철수 기간 데이터는 없어 일괄 가정). 여러 공연 기간이 겹치면 중복 집계하지 않도록
+    병합하고, 연도 밖으로 걸친 기간은 잘라낸다.
     """
     for f in facilities:
         for h in f["halls"]:
-            intervals: list[tuple[date, date]] = []
+            run_intervals: list[tuple[date, date]] = []
+            occupied_intervals: list[tuple[date, date]] = []
             for p in h.get("perf", []):
                 start, end = _parse_kopis_date(p.get("from")), _parse_kopis_date(p.get("to"))
                 if not start or not end:
                     continue
                 if end < start:
                     start, end = end, start
-                start, end = max(start, YEAR_START), min(end, YEAR_END)
-                if start <= end:
-                    intervals.append((start, end))
+                run = _clip_to_year(start, end)
+                if run:
+                    run_intervals.append(run)
+                occupied = _clip_to_year(start - timedelta(days=SETUP_DAYS), end + timedelta(days=TEARDOWN_DAYS))
+                if occupied:
+                    occupied_intervals.append(occupied)
 
-            if not intervals:
-                h["calendarOcc"] = None
+            if not occupied_intervals:
+                h["runDays"] = h["occupiedDays"] = h["calendarOcc"] = None
                 continue
 
-            intervals.sort()
-            merged = [intervals[0]]
-            for s, e in intervals[1:]:
-                last_s, last_e = merged[-1]
-                if s <= last_e:
-                    merged[-1] = (last_s, max(last_e, e))
-                else:
-                    merged.append((s, e))
-            covered_days = sum((e - s).days + 1 for s, e in merged)
-            h["calendarOcc"] = round(covered_days / YEAR_DAYS * 100, 1)
+            h["runDays"] = _union_days(run_intervals)
+            h["occupiedDays"] = _union_days(occupied_intervals)
+            h["calendarOcc"] = round(h["occupiedDays"] / YEAR_DAYS * 100, 1)
 
 
 def main():
@@ -382,7 +410,7 @@ def main():
     assign_perf_to_halls(facilities)
     compute_calendar_occupancy(facilities)
 
-    data = {"year": YEAR, "facilities": facilities}
+    data = {"year": YEAR, "setupDays": SETUP_DAYS, "teardownDays": TEARDOWN_DAYS, "facilities": facilities}
     data_json = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
     template = TEMPLATE_PATH.read_text(encoding="utf-8")

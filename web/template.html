@@ -289,6 +289,8 @@
     border-bottom: 1px solid var(--gridline);
   }
   table.perf-table th { color: var(--text-muted); font-weight: 600; font-size: 12px; }
+  .pad-days { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .summary-note { margin: -14px 0 16px; }
   .state-badge {
     font-size: 11px;
     padding: 1px 7px;
@@ -802,7 +804,7 @@ function renderFacilityDetail(f) {
       <div class="f-name">${esc(f.name)}</div>
       <div class="f-sub">${esc(f.sido)} ${esc(f.gugun || "")}</div>
     </div>
-    <p class="calendar-unavailable-note">캘린더가동률은 KOPIS가 관별 실제 공연일수를 API로 제공하지 않아, 각 공연의 상연기간(시작~종료)을 그 관이 점유한 기간으로 보고 근사 계산한 값입니다(겹치는 기간은 합쳐서 중복 집계하지 않음). 런 기간 중 쉬는 날(예: 매주 월요일 다크데이)이 있어도 그 기간엔 해당 공연에 배정된 것으로 간주하므로, 실제보다 다소 높게 나올 수 있습니다.</p>
+    <p class="calendar-unavailable-note">캘린더가동률은 KOPIS가 관별 실제 공연일수를 API로 제공하지 않아, 각 공연의 상연기간(시작~종료)에 준비 ${DATA.setupDays}일(앞)·철수 ${DATA.teardownDays}일(뒤)을 일괄로 더한 기간을 그 관이 점유한 기간으로 보고 근사 계산한 값입니다(겹치는 기간은 합쳐서 중복 집계하지 않음). 런 기간 중 쉬는 날(예: 매주 월요일 다크데이)이 있어도 그 기간엔 해당 공연에 배정된 것으로 간주하고, 준비·철수 기간은 실제 데이터가 아닌 가정이므로, 실제와 차이가 있을 수 있습니다.</p>
     <table class="hall-table">
       <thead><tr>
         <th data-sort="name">관(공연장)${sortArrow("name")}</th>
@@ -813,7 +815,7 @@ function renderFacilityDetail(f) {
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <p class="occ-note">좌석점유율 = 총 티켓판매수 ÷ (좌석수 × 상연횟수). 캘린더가동률 = 공연 상연기간 합집합 일수 ÷ 365일(추정치, 위 안내 참고). 열 제목을 클릭하면 정렬, 행을 클릭하면 그 관의 2025년 공연목록을 볼 수 있습니다.</p>
+    <p class="occ-note">좌석점유율 = 총 티켓판매수 ÷ (좌석수 × 상연횟수). 캘린더가동률 = (공연 상연기간 + 준비·철수 기간)의 합집합 일수 ÷ 365일(추정치, 위 안내 참고). 열 제목을 클릭하면 정렬, 행을 클릭하면 그 관의 2025년 공연목록을 볼 수 있습니다.</p>
     ${unmatchedLine}
   `;
 }
@@ -835,16 +837,25 @@ function perfDays(p) {
 function renderPerformances(f, hallIdx) {
   const hall = hallIdx != null ? f.halls[hallIdx] : null;
   const perf = ((hall ? hall.perf : f.perf) || []).slice().sort((a, b) => (a.from || "").localeCompare(b.from || ""));
+  const padDays = DATA.setupDays + DATA.teardownDays;
   const rows = perf.map((p) => {
     const days = perfDays(p);
     return `
     <tr>
       <td>${esc(p.name)}</td>
-      <td>${esc(p.from)} ~ ${esc(p.to)}${days ? ` (${days}일)` : ""}</td>
+      <td>${esc(p.from)} ~ ${esc(p.to)}${days ? ` (${days}일)` : ""}${days ? `<span class="pad-days">준비·철수 포함 ${days + padDays}일</span>` : ""}</td>
       <td>${esc(p.genre)}</td>
       <td><span class="state-badge">${esc(p.state)}</span></td>
     </tr>`;
   }).join("");
+
+  const summary = hall && hall.occupiedDays != null ? `
+    <div class="stat-grid">
+      <div class="stat-tile"><div class="s-label">공연기간 합계 (2025년분, 겹침 제외)</div><div class="s-value">${hall.runDays.toLocaleString()}일</div></div>
+      <div class="stat-tile"><div class="s-label">준비 ${DATA.setupDays}일·철수 ${DATA.teardownDays}일 포함</div><div class="s-value">${hall.occupiedDays.toLocaleString()}일</div></div>
+      <div class="stat-tile"><div class="s-label">캘린더가동률 (÷365일)</div><div class="s-value">${hall.calendarOcc.toFixed(1)}%</div></div>
+    </div>
+    <p class="occ-note summary-note">각 공연의 앞 ${DATA.setupDays}일(준비)·뒤 ${DATA.teardownDays}일(철수)도 관을 점유한 것으로 일괄 가정한 값입니다(KOPIS에 실제 준비·철수 기간 정보는 없음). 기간이 겹치면 한 번만 세고, 연도 밖으로 걸친 공연은 2025년분만 계산합니다.</p>` : "";
 
   const title = hall
     ? `${esc(f.name)} · ${esc(hall.name)} · 2025년 공연목록 (${perf.length}건)`
@@ -856,6 +867,7 @@ function renderPerformances(f, hallIdx) {
   return `
     ${note}
     <h2 class="view-title">${title}</h2>
+    ${summary}
     <table class="perf-table">
       <thead><tr><th>공연명</th><th>기간</th><th>장르</th><th>상태</th></tr></thead>
       <tbody>${rows || `<tr><td colspan="4" class="empty-msg">공연 기록이 없습니다.</td></tr>`}</tbody>
@@ -924,7 +936,7 @@ function renderAbout() {
       </ul>
       <h3>알려진 한계</h3>
       <ul>
-        <li><strong>캘린더가동률(%)</strong>은 정확한 실제 가동일수가 아니라 <strong>추정치</strong>입니다. KOPIS Open API가 관별 실제 공연 날짜 목록을 제공하지 않아, 대신 공연 상세정보의 상연기간(시작~종료)을 그 관이 해당 공연에 배정된 기간으로 보고, 여러 공연의 기간을 합집합(중복 제외)해 연간 일수로 나눴습니다. 런 기간 중 쉬는 요일이 있어도 그 기간 전체를 점유한 것으로 세므로 실제보다 다소 높게 나올 수 있습니다.</li>
+        <li><strong>캘린더가동률(%)</strong>은 정확한 실제 가동일수가 아니라 <strong>추정치</strong>입니다. KOPIS Open API가 관별 실제 공연 날짜 목록을 제공하지 않아, 대신 공연 상세정보의 상연기간(시작~종료)을 그 관이 해당 공연에 배정된 기간으로 보고, 각 공연 앞 ${DATA.setupDays}일(준비)·뒤 ${DATA.teardownDays}일(철수)을 일괄로 더한 뒤 여러 공연의 기간을 합집합(중복 제외)해 연간 일수로 나눴습니다. 런 기간 중 쉬는 요일이 있어도 그 기간 전체를 점유한 것으로 세고, 준비·철수 기간은 KOPIS에 없는 값이라 모든 공연에 같게 가정했으므로 실제와 차이가 있을 수 있습니다(특히 하루짜리 공연이 많은 관은 높게 나옵니다).</li>
         <li>공연목록은 <strong>관(공연장) 단위로 구분</strong>해 표시합니다. KOPIS 공연 상세정보에 관 정보가 없거나 이 시설의 관 목록과 매칭되지 않는 일부 공연은 "관 정보 없음"으로 별도 표시됩니다.</li>
         <li>시설명 매칭에 실패한 일부 시설은 <strong>"지역 미상"</strong>으로 별도 표시됩니다.</li>
         <li>지도 경계는 단순화된 것으로, 실제 행정경계와 세부 형태가 다를 수 있습니다.</li>
