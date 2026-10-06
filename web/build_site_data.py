@@ -309,24 +309,10 @@ def _parse_kopis_date(s: str | None) -> date | None:
         return None
 
 
-def _clip_to_year(start: date, end: date) -> tuple[date, date] | None:
+def _year_day_set(start: date, end: date) -> set[int]:
+    """[start, end]에서 2025년에 속하는 날짜들을 toordinal() 값의 집합으로 돌려준다."""
     start, end = max(start, YEAR_START), min(end, YEAR_END)
-    return (start, end) if start <= end else None
-
-
-def _union_days(intervals: list[tuple[date, date]]) -> int:
-    """겹치는 구간을 병합한 뒤 전체 일수(양끝 포함)를 센다."""
-    if not intervals:
-        return 0
-    intervals = sorted(intervals)
-    merged = [intervals[0]]
-    for s, e in intervals[1:]:
-        last_s, last_e = merged[-1]
-        if s <= last_e:
-            merged[-1] = (last_s, max(last_e, e))
-        else:
-            merged.append((s, e))
-    return sum((e - s).days + 1 for s, e in merged)
+    return set(range(start.toordinal(), end.toordinal() + 1))
 
 
 def compute_calendar_occupancy(facilities: list[dict]) -> None:
@@ -343,32 +329,48 @@ def compute_calendar_occupancy(facilities: list[dict]) -> None:
     월요일 다크데이) 그 관은 그 기간 동안 해당 공연에 배정돼 있었다고 보는 게 합리적이라는
     판단(2026-08-08 사용자 논의). 공연 전 무대 설치·리허설과 공연 후 철수에도 관을
     쓰므로 모든 공연에 공통으로 앞 3일·뒤 1일을 더한다(2026-10-06 사용자 제안; KOPIS에
-    준비/철수 기간 데이터는 없어 일괄 가정). 여러 공연 기간이 겹치면 중복 집계하지 않도록
-    병합하고, 연도 밖으로 걸친 기간은 잘라낸다.
+    준비/철수 기간 데이터는 없어 일괄 가정). 같은 날은 한 번만 세고, 연도 밖으로 걸친
+    기간은 잘라낸다.
+
+    공연별 p["occDays"]: 그 공연에 배정된 점유일(2025년분). 날짜가 겹칠 때는 같은 날을
+    한 번만 배정해서, 한 관의 공연별 occDays를 모두 더하면 h["occupiedDays"]와 같다.
+    배정 순서는 (1) 실제 공연일을 시작일 순으로 먼저, (2) 남은 날에 준비·철수 기간을
+    시작일 순으로 — 즉 공연일이 준비·철수보다 우선하고, 공연 사이 빈 날은 앞 공연의
+    철수가 먼저 가져간 뒤 남은 날을 뒤 공연의 준비가 쓴다.
     """
     for f in facilities:
         for h in f["halls"]:
-            run_intervals: list[tuple[date, date]] = []
-            occupied_intervals: list[tuple[date, date]] = []
+            entries: list[tuple[date, dict, set[int], set[int]]] = []
             for p in h.get("perf", []):
                 start, end = _parse_kopis_date(p.get("from")), _parse_kopis_date(p.get("to"))
                 if not start or not end:
+                    p["occDays"] = None
                     continue
                 if end < start:
                     start, end = end, start
-                run = _clip_to_year(start, end)
-                if run:
-                    run_intervals.append(run)
-                occupied = _clip_to_year(start - timedelta(days=SETUP_DAYS), end + timedelta(days=TEARDOWN_DAYS))
-                if occupied:
-                    occupied_intervals.append(occupied)
+                run = _year_day_set(start, end)
+                padded = _year_day_set(start - timedelta(days=SETUP_DAYS), end + timedelta(days=TEARDOWN_DAYS))
+                entries.append((start, p, run, padded))
 
-            if not occupied_intervals:
+            if not any(padded for _, _, _, padded in entries):
                 h["runDays"] = h["occupiedDays"] = h["calendarOcc"] = None
                 continue
 
-            h["runDays"] = _union_days(run_intervals)
-            h["occupiedDays"] = _union_days(occupied_intervals)
+            entries.sort(key=lambda e: e[0])
+            claimed: set[int] = set()
+            run_all: set[int] = set()
+            for _, p, run, _ in entries:
+                new = run - claimed
+                p["occDays"] = len(new)
+                claimed |= new
+                run_all |= run
+            for _, p, _, padded in entries:
+                new = padded - claimed
+                p["occDays"] += len(new)
+                claimed |= new
+
+            h["runDays"] = len(run_all)
+            h["occupiedDays"] = len(claimed)
             h["calendarOcc"] = round(h["occupiedDays"] / YEAR_DAYS * 100, 1)
 
 
