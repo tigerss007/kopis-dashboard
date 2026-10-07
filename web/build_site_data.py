@@ -29,18 +29,47 @@ from kopis_client import KopisApiError, KopisClient  # noqa: E402
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("build_site_data")
 
-YEAR = 2025
 WEB_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = WEB_DIR / "template.html"
-OUTPUT_PATH = WEB_DIR / "index.html"
 KOREA_PATHS_PATH = WEB_DIR / "korea_paths.json"
+
+# 연도별 페이지: 최신 연도(ROOT_YEAR)는 web/index.html, 나머지는 web/<연도>/index.html.
+# GitHub Pages 주소가 바뀌지 않도록 기존 루트 페이지(2025)를 그대로 둔다.
+ALL_YEARS = [2025, 2024, 2023]
+ROOT_YEAR = 2025
+
+
+def _output_path(year: int) -> Path:
+    return WEB_DIR / "index.html" if year == ROOT_YEAR else WEB_DIR / str(year) / "index.html"
+
+
+def _year_links(current_year: int) -> list[dict]:
+    """현재 페이지에서 각 연도 페이지로 가는 상대 경로(file://과 GitHub Pages 모두에서 동작)."""
+    up = "" if current_year == ROOT_YEAR else "../"
+    return [
+        {"year": y, "href": up + ("index.html" if y == ROOT_YEAR else f"{y}/index.html")}
+        for y in ALL_YEARS
+    ]
+
+
+YEAR = ROOT_YEAR
+OUTPUT_PATH = _output_path(YEAR)
+
+
+def set_year(year: int) -> None:
+    """이 모듈의 연도 의존 전역값(집계 연도, 연도 경계, 출력 경로)을 바꾼다."""
+    global YEAR, YEAR_START, YEAR_END, YEAR_DAYS, OUTPUT_PATH
+    YEAR = year
+    YEAR_START = date(year, 1, 1)
+    YEAR_END = date(year, 12, 31)
+    YEAR_DAYS = (YEAR_END - YEAR_START).days + 1  # 윤년(2024)은 366일
+    OUTPUT_PATH = _output_path(year)
+
 
 DETAIL_SLEEP_SEC = 0.2
 PERF_PROGRESS_EVERY = 500
 
-YEAR_START = date(YEAR, 1, 1)
-YEAR_END = date(YEAR, 12, 31)
-YEAR_DAYS = (YEAR_END - YEAR_START).days + 1
+set_year(YEAR)
 
 # 모든 공연에 일괄 적용하는 준비(공연 앞)·철수(공연 뒤) 기간. KOPIS에는 실제 값이 없다.
 SETUP_DAYS = 3
@@ -89,13 +118,19 @@ def fetch_facility_master(client: KopisClient, cache: ResponseCache) -> dict:
             norm = normalize_facility_name(name)
             if not norm:
                 continue
-            master[norm] = {
+            base = {
                 "name": name,
                 "sido": r.get("sidonm", ""),
                 "gugun": r.get("gugunnm", ""),
                 "hall_count": r.get("mt13cnt", ""),
                 "id": r.get("mt10id", ""),
+                # KOPIS에는 폐관 여부 필드가 없고 시설명에 "(폐관)"/"[폐관]"을 붙여 표시한다.
+                "closed": "폐관" in name,
             }
+            # 정규화하면 이름이 같아지는 시설(예: "이수아트홀 [대전]"과 "이수아트홀 [대학로] (폐관)")이
+            # 서로 덮어쓰지 않도록 같은 정규화명의 시설을 모두 보관해 둔다.
+            variants = master.get(norm, {}).get("variants", []) + [base]
+            master[norm] = {**base, "variants": variants}
     return master
 
 
@@ -125,6 +160,9 @@ def fetch_performances(client: KopisClient, cache: ResponseCache) -> dict:
 def _lookup_master(fclty_name: str, norm: str, master: dict) -> dict | None:
     info = master.get(norm)
     if info is not None:
+        for v in info.get("variants", ()):
+            if v["name"] == fclty_name:  # 같은 정규화명의 시설이 여럿이면 이름이 정확히 같은 쪽을 우선
+                return v
         return info
     matches = find_matches(fclty_name, [v["name"] for v in master.values()])
     if not matches:
@@ -171,6 +209,11 @@ def build_facilities(rows: list[dict], master: dict, performances: dict) -> tupl
                 "halls": [],
                 "perf": _lookup_performances(fclty_name, norm, perf_by_norm, perf_raw_keys, performances),
             }
+            if info and info.get("closed"):
+                facilities[norm]["closed"] = True
+        # 통계 쪽 시설명에만 폐관 표시가 있는 경우도 놓치지 않는다.
+        if "폐관" in fclty_name:
+            facilities[norm]["closed"] = True
         facilities[norm]["halls"].append({
             "idx": len(facilities[norm]["halls"]),
             "name": row["공연장(관)"],
@@ -412,13 +455,21 @@ def main():
     assign_perf_to_halls(facilities)
     compute_calendar_occupancy(facilities)
 
-    data = {"year": YEAR, "setupDays": SETUP_DAYS, "teardownDays": TEARDOWN_DAYS, "facilities": facilities}
+    data = {
+        "year": YEAR,
+        "yearDays": YEAR_DAYS,
+        "years": _year_links(YEAR),
+        "setupDays": SETUP_DAYS,
+        "teardownDays": TEARDOWN_DAYS,
+        "facilities": facilities,
+    }
     data_json = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
     if "__KOPIS_DATA__" not in template:
         raise RuntimeError("template.html에 __KOPIS_DATA__ 플레이스홀더가 없습니다.")
     output = template.replace("__KOPIS_DATA__", data_json)
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(output, encoding="utf-8")
 
     size_mb = OUTPUT_PATH.stat().st_size / (1024 * 1024)
@@ -434,4 +485,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # 사용법: python web/build_site_data.py [연도 ...]   (생략하면 2025)
+    # 예) python web/build_site_data.py 2024 2023  — 연도별로 순서대로 빌드한다.
+    years = [int(a) for a in sys.argv[1:]] or [ROOT_YEAR]
+    for y in years:
+        if y not in ALL_YEARS:
+            raise SystemExit(f"지원하지 않는 연도: {y} (ALL_YEARS={ALL_YEARS})")
+    for y in years:
+        set_year(y)
+        main()

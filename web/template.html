@@ -19,6 +19,8 @@
     --accent-fill-100: #cde2fb;
     --accent-fill-400: #3987e5;
     --accent2-400: #c2790a;
+    --closed-bg: #f6dcdc;
+    --closed-fg: #a32a2a;
     --hover-wash: rgba(42,120,214,0.08);
   }
   @media (prefers-color-scheme: dark) {
@@ -36,6 +38,8 @@
       --accent-fill-100: #184f95;
       --accent-fill-400: #2a78d6;
       --accent2-400: #e0973a;
+      --closed-bg: #4a1f22;
+      --closed-fg: #f0a4a4;
       --hover-wash: rgba(57,135,229,0.14);
     }
   }
@@ -53,6 +57,8 @@
     --accent-fill-100: #184f95;
     --accent-fill-400: #2a78d6;
     --accent2-400: #e0973a;
+    --closed-bg: #4a1f22;
+    --closed-fg: #f0a4a4;
     --hover-wash: rgba(57,135,229,0.14);
   }
 
@@ -83,6 +89,8 @@
     border-radius: 10px;
     margin-left: 6px;
   }
+  .brand .year-select { font-family: inherit; border: 0; cursor: pointer; padding: 2px 4px; }
+  .brand .year-select:focus-visible { outline: 2px solid var(--accent); }
   nav.tabs { display: flex; gap: 4px; }
   .tab-btn {
     border: none;
@@ -306,6 +314,19 @@
     border-bottom: 1px solid var(--gridline);
   }
   table.perf-table th { color: var(--text-muted); font-weight: 600; font-size: 12px; }
+  .closed-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--closed-fg);
+    background: var(--closed-bg);
+    border-radius: 8px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .closed-note { font-size: 12px; color: var(--closed-fg); margin-top: 6px; }
   .pad-days { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
   .summary-note { margin: -14px 0 16px; }
   .state-badge {
@@ -405,7 +426,7 @@
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">전국 공연시설 가동률<span class="year-badge">2025</span></div>
+  <div class="brand">전국 공연시설 가동률<span class="year-badge" id="yearBadge">2025</span></div>
   <div class="topbar-controls">
     <div class="global-search">
       <input type="text" id="globalSearch" class="search-box" placeholder="전체 시설 검색" autocomplete="off">
@@ -559,6 +580,11 @@ function esc(s) {
   ));
 }
 
+/* KOPIS 시설 목록에 폐관으로 표시된 시설(시설명에 "(폐관)"/"[폐관]")에 붙이는 배지. */
+function closedBadge(closed) {
+  return closed ? `<span class="closed-badge" title="KOPIS 시설 목록에 폐관으로 표시된 시설입니다">폐관</span>` : "";
+}
+
 function facilitiesBySido(sido) {
   return DATA.facilities.filter((f) => f.sido === sido);
 }
@@ -676,7 +702,7 @@ function renderRegions() {
 
   return `
     <h2 class="view-title">시도를 선택하세요</h2>
-    <p class="hint">2025년 공연 실적이 있는 시설만 표시됩니다. 지도는 단순화된 경계라 실제 행정경계와 세부 형태가 다를 수 있습니다. 색이 진할수록 선택한 기준(${MAP_METRICS[mapMetric].label})의 값이 큽니다. 괄호 안은 전국 대비 비율입니다. 점(●)은 각 공연시설의 실제 주소 기준 위치입니다(KOPIS 상세정보에 주소가 없는 일부 시설은 소속 시도·구군 내의 임의 위치로 대체 표시됩니다) — 클릭하면 해당 시설로 이동합니다.</p>
+    <p class="hint">${DATA.year}년 공연 실적이 있는 시설만 표시됩니다. 지도는 단순화된 경계라 실제 행정경계와 세부 형태가 다를 수 있습니다. 색이 진할수록 선택한 기준(${MAP_METRICS[mapMetric].label})의 값이 큽니다. 괄호 안은 전국 대비 비율입니다. 점(●)은 각 공연시설의 실제 주소 기준 위치입니다(KOPIS 상세정보에 주소가 없는 일부 시설은 소속 시도·구군 내의 임의 위치로 대체 표시됩니다) — 클릭하면 해당 시설로 이동합니다.</p>
     ${metricToggle}
     <div class="map-layout">
       <svg viewBox="0 0 ${KOREA_MAP.width} ${KOREA_MAP.height}" class="korea-svg">${paths}${dots}</svg>
@@ -743,7 +769,7 @@ function renderAllFacilities() {
 function computeAllHallsList() {
   const q = state.hallsQuery.trim();
   let halls = [];
-  DATA.facilities.forEach((f) => f.halls.forEach((h) => halls.push({ ...h, facility: f.name, sido: f.sido, idx: f.idx })));
+  DATA.facilities.forEach((f) => f.halls.forEach((h) => halls.push({ ...h, facility: f.name, sido: f.sido, idx: f.idx, closed: f.closed })));
   if (q) halls = halls.filter((h) => h.name.includes(q) || h.facility.includes(q));
   const { key, dir } = state.hallsSort;
   if (key) {
@@ -766,7 +792,7 @@ function allHallRowHtml(h) {
   return `<tr data-facility="${h.idx}">
     <td>
       <div class="f-name">${esc(h.name)}</div>
-      <div class="f-sub">${esc(h.facility)} · ${esc(h.sido)}</div>
+      <div class="f-sub">${esc(h.facility)}${closedBadge(h.closed)} · ${esc(h.sido)}</div>
     </td>
     <td class="ticket-num">${h.seat > 0 ? h.seat.toLocaleString() + "석" : "미상"}</td>
     <td class="ticket-num">${h.tickets.toLocaleString()}매</td>
@@ -801,7 +827,7 @@ function facilityCardHtml(f, showSido) {
   const sub = showSido ? `${esc(f.sido)} ${esc(f.gugun || "")} · 관 ${f.halls.length}개` : `${esc(f.gugun || "")} · 관 ${f.halls.length}개`;
   return `<div class="facility-card" data-facility="${f.idx}">
     <div>
-      <div class="f-name">${esc(f.name)}</div>
+      <div class="f-name">${esc(f.name)}${closedBadge(f.closed)}</div>
       <div class="f-sub">${sub}</div>
     </div>
     <div class="f-meta">최고 좌석점유율<br>${rate >= 0 ? rate.toFixed(1) + "%" : "산출 불가"}</div>
@@ -857,8 +883,9 @@ function renderFacilityDetail(f) {
 
   return `
     <div class="info-card">
-      <div class="f-name">${esc(f.name)}</div>
+      <div class="f-name">${esc(f.name)}${closedBadge(f.closed)}</div>
       <div class="f-sub">${esc(f.sido)} ${esc(f.gugun || "")}</div>
+      ${f.closed ? `<div class="closed-note">KOPIS 시설 목록에 폐관으로 표시된 시설입니다(현재 기준이며 폐관 시점은 알 수 없습니다).</div>` : ""}
     </div>
     <p class="calendar-unavailable-note">캘린더가동률은 KOPIS가 관별 실제 공연일수를 API로 제공하지 않아, 각 공연의 상연기간(시작~종료)에 준비 ${DATA.setupDays}일(앞)·철수 ${DATA.teardownDays}일(뒤)을 일괄로 더한 기간을 그 관이 점유한 기간으로 보고 근사 계산한 값입니다(겹치는 기간은 합쳐서 중복 집계하지 않음). 런 기간 중 쉬는 날(예: 매주 월요일 다크데이)이 있어도 그 기간엔 해당 공연에 배정된 것으로 간주하고, 준비·철수 기간은 실제 데이터가 아닌 가정이므로, 실제와 차이가 있을 수 있습니다.</p>
     <table class="hall-table">
@@ -871,7 +898,7 @@ function renderFacilityDetail(f) {
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <p class="occ-note">좌석점유율 = 총 티켓판매수 ÷ (좌석수 × 상연횟수). 캘린더가동률 = (공연 상연기간 + 준비·철수 기간)의 합집합 일수 ÷ 365일(추정치, 위 안내 참고). 열 제목을 클릭하면 정렬, 행을 클릭하면 그 관의 2025년 공연목록을 볼 수 있습니다.</p>
+    <p class="occ-note">좌석점유율 = 총 티켓판매수 ÷ (좌석수 × 상연횟수). 캘린더가동률 = (공연 상연기간 + 준비·철수 기간)의 합집합 일수 ÷ ${DATA.yearDays}일(추정치, 위 안내 참고). 열 제목을 클릭하면 정렬, 행을 클릭하면 그 관의 ${DATA.year}년 공연목록을 볼 수 있습니다.</p>
     ${unmatchedLine}
   `;
 }
@@ -909,14 +936,14 @@ function renderPerformances(f, hallIdx) {
 
   const summary = hall && hall.occupiedDays != null ? `
     <div class="stat-grid">
-      <div class="stat-tile"><div class="s-label">공연기간 합계 (2025년분, 겹침 제외)</div><div class="s-value">${hall.runDays.toLocaleString()}일</div></div>
+      <div class="stat-tile"><div class="s-label">공연기간 합계 (${DATA.year}년분, 겹침 제외)</div><div class="s-value">${hall.runDays.toLocaleString()}일</div></div>
       <div class="stat-tile"><div class="s-label">준비 ${DATA.setupDays}일·철수 ${DATA.teardownDays}일 포함</div><div class="s-value">${hall.occupiedDays.toLocaleString()}일</div></div>
-      <div class="stat-tile"><div class="s-label">캘린더가동률 (÷365일)</div><div class="s-value">${hall.calendarOcc.toFixed(1)}%</div></div>
+      <div class="stat-tile"><div class="s-label">캘린더가동률 (÷${DATA.yearDays}일)</div><div class="s-value">${hall.calendarOcc.toFixed(1)}%</div></div>
     </div>
-    <p class="occ-note summary-note">각 공연의 앞 ${DATA.setupDays}일(준비)·뒤 ${DATA.teardownDays}일(철수)도 관을 점유한 것으로 일괄 가정한 값입니다(KOPIS에 실제 준비·철수 기간 정보는 없음). 같은 날은 한 번만 세고, 연도 밖으로 걸친 공연은 2025년분만 계산합니다. 공연 행마다 적은 점유일은 겹치는 날을 한 번만 배정한 값(실제 공연일을 먼저, 남는 날에 준비·철수를 시작일 순으로)이라 모두 더하면 위의 점유일과 같습니다.</p>` : "";
+    <p class="occ-note summary-note">각 공연의 앞 ${DATA.setupDays}일(준비)·뒤 ${DATA.teardownDays}일(철수)도 관을 점유한 것으로 일괄 가정한 값입니다(KOPIS에 실제 준비·철수 기간 정보는 없음). 같은 날은 한 번만 세고, 연도 밖으로 걸친 공연은 ${DATA.year}년분만 계산합니다. 공연 행마다 적은 점유일은 겹치는 날을 한 번만 배정한 값(실제 공연일을 먼저, 남는 날에 준비·철수를 시작일 순으로)이라 모두 더하면 위의 점유일과 같습니다.</p>` : "";
 
   const title = hall
-    ? `${esc(f.name)} · ${esc(hall.name)} · 2025년 공연목록 (${perf.length}건)`
+    ? `${esc(f.name)} · ${esc(hall.name)} · ${DATA.year}년 공연목록 (${perf.length}건)`
     : `${esc(f.name)} · 관 정보 없는 공연 (${perf.length}건)`;
   const note = hall
     ? ""
@@ -935,7 +962,7 @@ function renderPerformances(f, hallIdx) {
 
 function computeSummaryStats() {
   const halls = [];
-  DATA.facilities.forEach((f) => f.halls.forEach((h) => halls.push({ ...h, facility: f.name, sido: f.sido, idx: f.idx, hallCount: f.halls.length })));
+  DATA.facilities.forEach((f) => f.halls.forEach((h) => halls.push({ ...h, facility: f.name, sido: f.sido, idx: f.idx, closed: f.closed, hallCount: f.halls.length })));
   const occs = halls.filter((h) => h.occ != null).map((h) => h.occ);
   const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
   return {
@@ -951,7 +978,7 @@ function ticketRankRowHtml(h, i) {
     <td class="rank-num">${i + 1}</td>
     <td>
       <div class="f-name">${esc(h.name)}</div>
-      <div class="f-sub">${esc(h.facility)} · ${esc(h.sido)} · 관 ${h.hallCount}개 중 하나</div>
+      <div class="f-sub">${esc(h.facility)}${closedBadge(h.closed)} · ${esc(h.sido)} · 관 ${h.hallCount}개 중 하나</div>
     </td>
     <td class="ticket-num">${h.seat > 0 ? h.seat.toLocaleString() + "석" : "미상"}</td>
     <td class="ticket-num">${h.tickets.toLocaleString()}매</td>
@@ -986,7 +1013,7 @@ function renderAbout() {
     <div class="about-body">
       <h2 class="view-title">이 도구에 대해</h2>
       <ul>
-        <li>데이터 범위: <strong>2025년, 전국</strong> (KOPIS에 공연 실적이 잡힌 시설만 포함)</li>
+        <li>데이터 범위: <strong>${DATA.year}년, 전국</strong> (KOPIS에 공연 실적이 잡힌 시설만 포함)</li>
       </ul>
       <h3>지표 설명</h3>
       <ul>
@@ -996,6 +1023,8 @@ function renderAbout() {
       <ul>
         <li><strong>캘린더가동률(%)</strong>은 정확한 실제 가동일수가 아니라 <strong>추정치</strong>입니다. KOPIS Open API가 관별 실제 공연 날짜 목록을 제공하지 않아, 대신 공연 상세정보의 상연기간(시작~종료)을 그 관이 해당 공연에 배정된 기간으로 보고, 각 공연 앞 ${DATA.setupDays}일(준비)·뒤 ${DATA.teardownDays}일(철수)을 일괄로 더한 뒤 여러 공연의 기간을 합집합(중복 제외)해 연간 일수로 나눴습니다. 런 기간 중 쉬는 요일이 있어도 그 기간 전체를 점유한 것으로 세고, 준비·철수 기간은 KOPIS에 없는 값이라 모든 공연에 같게 가정했으므로 실제와 차이가 있을 수 있습니다(특히 하루짜리 공연이 많은 관은 높게 나옵니다).</li>
         <li>공연목록은 <strong>관(공연장) 단위로 구분</strong>해 표시합니다. KOPIS 공연 상세정보에 관 정보가 없거나 이 시설의 관 목록과 매칭되지 않는 일부 공연은 "관 정보 없음"으로 별도 표시됩니다.</li>
+        <li><strong>폐관</strong> 배지는 KOPIS 시설 목록에서 시설명에 "(폐관)"·"[폐관]"이 붙은 시설에 표시합니다. KOPIS에는 폐관 여부나 폐관 시점을 알려주는 항목이 따로 없어서, 현재 기준으로 폐관이라는 뜻일 뿐 해당 연도에 이미 닫혀 있었다는 뜻은 아닙니다.</li>
+        <li>시설의 주소·지역·관(공연장) 목록은 연도별 자료가 아니라 <strong>현재 KOPIS 시설 정보</strong>를 기준으로 합니다. 그래서 이후에 이름이 바뀌거나 사라진 관의 공연은 "관 정보 없음"으로 분류되는 경우가 있고, 과거 연도일수록 더 많습니다.</li>
         <li>시설명 매칭에 실패한 일부 시설은 <strong>"지역 미상"</strong>으로 별도 표시됩니다.</li>
         <li>지도 경계는 단순화된 것으로, 실제 행정경계와 세부 형태가 다를 수 있습니다.</li>
       </ul>
@@ -1232,7 +1261,7 @@ function renderGlobalSearchResults(query) {
   const matches = globalSearchMatches(query);
   globalSearchResults.innerHTML = matches.length
     ? matches.map((f) => `<div class="search-result-row" data-facility="${f.idx}">
-        <div class="f-name">${esc(f.name)}</div>
+        <div class="f-name">${esc(f.name)}${closedBadge(f.closed)}</div>
         <div class="f-sub">${esc(f.sido)} ${esc(f.gugun || "")} · 관 ${f.halls.length}개</div>
       </div>`).join("")
     : `<div class="search-result-empty">검색 결과가 없습니다.</div>`;
@@ -1252,6 +1281,20 @@ document.addEventListener("keydown", (e) => {
     globalSearchInput.blur();
   }
 });
+
+/* 연도 선택: 연도별 페이지(web/<연도>/index.html)로 이동한다. */
+(function initYearSelect() {
+  document.title = `전국 공연시설 가동률 (${DATA.year})`;
+  const badge = document.getElementById("yearBadge");
+  if (!badge || !DATA.years) return;
+  const sel = document.createElement("select");
+  sel.id = "yearSelect";
+  sel.className = "year-badge year-select";
+  sel.setAttribute("aria-label", "연도 선택");
+  sel.innerHTML = DATA.years.map((y) => `<option value="${esc(y.href)}"${y.year === DATA.year ? " selected" : ""}>${y.year}년</option>`).join("");
+  sel.addEventListener("change", () => { location.href = sel.value; });
+  badge.replaceWith(sel);
+})();
 
 window.addEventListener("hashchange", applyHash);
 applyTheme();
