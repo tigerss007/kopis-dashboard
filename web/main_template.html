@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>대한민국 공연시장 동향 · 티켓판매 5개년과 공연장 가동률</title>
+<meta name="description" content="KOPIS 공식 통계로 보는 공연시장의 성장(티켓판매액·예매수·공연건수), 장르·지역·공연장 규모별 변화와 전국 공연장의 연도별 가동률.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="대한민국 공연시장 동향">
+<meta property="og:description" content="티켓판매액 5개년 추이, 장르·지역·공연장 규모별 변화, 아레나급 공연장 가동률까지 한 페이지에.">
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb; --page: #f9f9f7;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
+    --gridline: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --accent: #2a78d6; --accent-fill-100: #cde2fb; --hover-wash: rgba(42,120,214,0.08);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95; --seq-7: #0d366b;
+    --up: #006300; --down: #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1: #1a1a19; --page: #0d0d0d;
+      --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+      --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+      --accent: #3987e5; --accent-fill-100: #184f95; --hover-wash: rgba(57,135,229,0.14);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --seq-1: #0d366b; --seq-2: #184f95; --seq-3: #1c5cab; --seq-4: #2a78d6; --seq-5: #3987e5; --seq-6: #6da7ec; --seq-7: #9ec5f4;
+      --up: #0ca30c; --down: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1: #1a1a19; --page: #0d0d0d;
+    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+    --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+    --accent: #3987e5; --accent-fill-100: #184f95; --hover-wash: rgba(57,135,229,0.14);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+    --seq-1: #0d366b; --seq-2: #184f95; --seq-3: #1c5cab; --seq-4: #2a78d6; --seq-5: #3987e5; --seq-6: #6da7ec; --seq-7: #9ec5f4;
+    --up: #0ca30c; --down: #e66767;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; background: var(--page); color: var(--text-primary); line-height: 1.55; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  header.topbar { position: sticky; top: 0; z-index: 20; background: var(--surface-1); border-bottom: 1px solid var(--border); }
+  header.topbar .wrap { display: flex; align-items: center; gap: 14px; padding-top: 10px; padding-bottom: 10px; }
+  .brand { font-weight: 700; font-size: 16px; white-space: nowrap; color: inherit; text-decoration: none; }
+  nav.anchors { display: flex; gap: 2px; overflow-x: auto; flex: 1; scrollbar-width: none; }
+  nav.anchors::-webkit-scrollbar { display: none; }
+  nav.anchors a { color: var(--text-secondary); text-decoration: none; font-size: 13px; padding: 5px 9px; border-radius: 8px; white-space: nowrap; }
+  nav.anchors a:hover { background: var(--hover-wash); color: var(--text-primary); }
+  .theme-btn { border: 1px solid var(--border); background: var(--surface-1); border-radius: 8px; padding: 5px 9px; cursor: pointer; font-size: 14px; }
+  .dash-menu { font-size: 13px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-1); color: var(--text-primary); font-family: inherit; cursor: pointer; }
+
+  .hero { padding: 44px 0 26px; }
+  .eyebrow { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: .02em; margin-bottom: 8px; }
+  h1 { font-size: clamp(26px, 4.6vw, 40px); line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .lede { color: var(--text-secondary); max-width: 62ch; margin: 0 0 22px; }
+  .hero-figure { font-size: clamp(44px, 9vw, 72px); font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; margin: 6px 0 2px; }
+  .hero-sub { color: var(--text-secondary); font-size: 14px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 22px; }
+  .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px 10px; }
+  .tile .t-label { font-size: 12px; color: var(--text-muted); }
+  .tile .t-value { font-size: 24px; font-weight: 700; margin: 2px 0 2px; }
+  .tile .t-meta { font-size: 12px; color: var(--text-secondary); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tile svg { display: block; width: 100%; height: 34px; margin-top: 6px; }
+
+  .delta { font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .delta.up { color: var(--up); } .delta.down { color: var(--down); } .delta.flat { color: var(--text-muted); }
+
+  .insights { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 18px; }
+  .insight { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; font-size: 14px; }
+  .insight b { font-weight: 700; }
+  .insight .i-tag { display: block; font-size: 11px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+
+  section.block { padding: 34px 0 6px; }
+  section.block > .wrap > h2 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.005em; }
+  .block-sub { color: var(--text-secondary); margin: 0 0 14px; max-width: 70ch; font-size: 14px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 12px; }
+  .toolbar .tb-label { font-size: 12px; color: var(--text-muted); margin-right: 4px; }
+  .seg { padding: 5px 12px; font-size: 12.5px; font-family: inherit; color: var(--text-secondary); background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; cursor: pointer; }
+  .seg:hover { border-color: var(--accent); }
+  .seg.active { color: #fff; background: var(--accent); border-color: var(--accent); font-weight: 600; }
+
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .card h3 { font-size: 15px; margin: 0 0 2px; }
+  .card .c-sub { font-size: 12.5px; color: var(--text-muted); margin: 0 0 8px; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+  .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .chart text { font-family: inherit; }
+  .ax { fill: var(--text-muted); font-size: 11px; }
+  .val { fill: var(--text-secondary); font-size: 11px; }
+  .grid-line { stroke: var(--gridline); stroke-width: 1; }
+  .base-line { stroke: var(--baseline); stroke-width: 1; }
+  .bar { transition: opacity .12s; } .bar:hover { opacity: .8; }
+  .hit { fill: transparent; }
+  .xh line { stroke: var(--baseline); stroke-width: 1; opacity: 0; pointer-events: none; }
+  .xh:hover line { opacity: 1; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 0; font-size: 12.5px; color: var(--text-secondary); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .legend i.line { height: 2px; width: 14px; border-radius: 1px; vertical-align: 3px; }
+  details.tview { margin-top: 10px; font-size: 12.5px; }
+  details.tview summary { cursor: pointer; color: var(--text-secondary); }
+  .table-wrap { overflow-x: auto; margin-top: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--gridline); white-space: nowrap; }
+  th { color: var(--text-muted); font-weight: 600; font-size: 12px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.wrap-ok { white-space: normal; }
+
+  .stackrow { margin: 10px 0; }
+  .stackrow .sr-label { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 4px; }
+  .stackbar { display: flex; gap: 2px; height: 26px; }
+  .stackbar > span { display: block; min-width: 2px; border-radius: 3px; position: relative; }
+  .stackbar > span em { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 11px; color: #fff; font-weight: 600; }
+
+  .mapbox { display: grid; grid-template-columns: minmax(240px, 380px) 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 760px) { .mapbox { grid-template-columns: 1fr; } }
+  .map svg { width: 100%; height: auto; display: block; }
+  .map path { stroke: var(--surface-1); stroke-width: 1.2; }
+  .map path:hover { opacity: .8; }
+  .map text { font-size: 9px; fill: var(--text-primary); paint-order: stroke; stroke: var(--surface-1); stroke-width: 3px; font-weight: 600; pointer-events: none; }
+  .scale { display: flex; align-items: center; gap: 3px; margin-top: 8px; font-size: 11px; color: var(--text-muted); }
+  .scale i { display: inline-block; width: 22px; height: 8px; }
+  .rank { display: grid; grid-template-columns: 54px 1fr auto; gap: 4px 10px; align-items: center; font-size: 13px; }
+  .rank .r-name { font-weight: 600; }
+  .rank .r-bar { height: 8px; background: var(--gridline); border-radius: 4px; overflow: hidden; }
+  .rank .r-bar > span { display: block; height: 100%; background: var(--s1); border-radius: 4px; }
+  .rank .r-val { color: var(--text-secondary); font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .callout { background: var(--accent-fill-100); border-radius: 12px; padding: 12px 16px; font-size: 14px; margin: 0 0 14px; }
+  .callout b { font-weight: 700; }
+  .chip { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 10px; background: var(--gridline); color: var(--text-secondary); white-space: nowrap; }
+  .chip.g1 { background: color-mix(in srgb, var(--s1) 22%, var(--surface-1)); }
+  a.link-btn { display: inline-block; text-decoration: none; font-size: 12.5px; font-weight: 600; padding: 3px 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--accent); background: var(--surface-1); }
+  a.link-btn:hover { background: var(--hover-wash); }
+
+  .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  a.dash-card { display: block; text-decoration: none; color: inherit; background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  a.dash-card:hover { border-color: var(--accent); background: var(--hover-wash); }
+  a.dash-card .d-year { font-size: 22px; font-weight: 700; }
+  a.dash-card .d-go { float: right; color: var(--accent); font-size: 13px; font-weight: 600; }
+  a.dash-card dl { margin: 8px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 13px; }
+  a.dash-card dt { color: var(--text-muted); } a.dash-card dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .notes { font-size: 13px; color: var(--text-secondary); max-width: 80ch; }
+  .notes li { margin: 5px 0; }
+  footer { margin-top: 44px; padding: 26px 0 50px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--text-muted); }
+
+  .tip { position: fixed; z-index: 50; pointer-events: none; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; box-shadow: 0 4px 16px rgba(0,0,0,.18); max-width: 280px; display: none; line-height: 1.45; }
+  .tip b { font-weight: 700; }
+  .tip .tr { display: flex; justify-content: space-between; gap: 14px; }
+  .tip .tr i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+  @media print { header.topbar, .toolbar, details.tview { display: none; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top">공연시장 동향</a>
+    <nav class="anchors" aria-label="섹션 바로가기">
+      <a href="#scale">시장 규모</a><a href="#genre">장르</a><a href="#region">지역</a><a href="#month">월별</a>
+      <a href="#venue">공연장 규모</a><a href="#arena">아레나</a><a href="#top20">상위 공연</a><a href="#dash">연도별 대시보드</a><a href="#about">출처·방법</a>
+    </nav>
+    <select id="dashMenu" class="dash-menu" aria-label="연도별 공연장 대시보드로 이동"></select>
+    <button id="themeToggle" class="theme-btn" type="button" aria-label="다크모드 전환" title="다크모드 전환">🌙</button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero"><div class="wrap" id="heroMount"></div></section>
+  <section class="block" id="scale"><div class="wrap">
+    <h2>시장 규모: 5개년 성장</h2>
+    <p class="block-sub" id="scaleSub"></p>
+    <div id="scaleMount"></div>
+  </div></section>
+  <section class="block" id="genre"><div class="wrap">
+    <h2>장르: 누가 시장을 키웠나</h2>
+    <p class="block-sub">공연 건수와 판매액의 장르 구성은 크게 다릅니다. 같은 장르 색은 어느 지표에서든 그대로 유지됩니다.</p>
+    <div id="genreMount"></div>
+  </div></section>
+  <section class="block" id="region"><div class="wrap">
+    <h2>지역: 수도권 쏠림</h2>
+    <p class="block-sub">연도와 지표를 바꿔가며 시도별 규모와 전국 대비 비중을 볼 수 있습니다. 색은 값에 비례합니다.</p>
+    <div id="regionMount"></div>
+  </div></section>
+  <section class="block" id="month"><div class="wrap">
+    <h2>월별: 연말에 몰리는 시장</h2>
+    <p class="block-sub" id="monthSub"></p>
+    <div id="monthMount"></div>
+  </div></section>
+  <section class="block" id="venue"><div class="wrap">
+    <h2>공연장 규모: 초대형 공연장의 부상</h2>
+    <p class="block-sub">좌석수 구간별 실적입니다. 가장 위 구간(1만 석 이상)의 변화가 두드러집니다.</p>
+    <div id="venueMount"></div>
+  </div></section>
+  <section class="block" id="arena"><div class="wrap">
+    <h2>아레나·초대형 공연장: 공연장 단위로 보면</h2>
+    <p class="block-sub">시장 전체 숫자(KOPIS 공식 보고서)에 이 사이트의 공연장별 집계를 이어 붙였습니다. 좌석수 5,000석 이상 공연장의 연도별 티켓판매와 캘린더가동률입니다.</p>
+    <div id="arenaMount"></div>
+  </div></section>
+  <section class="block" id="top20"><div class="wrap">
+    <h2>가장 많이 팔린 공연과 쏠림</h2>
+    <div id="topMount"></div>
+  </div></section>
+  <section class="block" id="dash"><div class="wrap">
+    <h2>연도별 공연장 대시보드</h2>
+    <p class="block-sub">전국 공연시설과 관(공연장)별 좌석점유율·캘린더가동률, 지역지도, 관별 공연목록을 연도마다 볼 수 있습니다.</p>
+    <div id="dashMount"></div>
+    <div id="reconMount"></div>
+  </div></section>
+  <section class="block" id="about"><div class="wrap">
+    <h2>출처와 읽는 법</h2>
+    <div id="aboutMount"></div>
+  </div></section>
+</main>
+<footer><div class="wrap" id="footMount"></div></footer>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const MAIN = __MAIN_DATA__;
+
+/* ---------- 기본 도구 ---------- */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = (n) => Math.round(n).toLocaleString("ko-KR");
+const MK = MAIN.market;
+const YEARS = Object.keys(MK.overall).map(Number).sort((a, b) => a - b);   // 시장 통계가 있는 연도(보고서 기준)
+const LATEST = YEARS[YEARS.length - 1], PREV = YEARS[YEARS.length - 2], FIRST = YEARS[0];
+
+function won(n) {                       // 1조 7,326억 원 / 5,320억 원 / 4억 원
+  const eok = Math.round(n / 1e8);
+  if (eok >= 10000) { const jo = Math.floor(eok / 10000), r = eok % 10000; return r ? `${jo}조 ${num(r)}억 원` : `${jo}조 원`; }
+  if (eok >= 1) return `${num(eok)}억 원`;
+  return `${num(n / 1e4)}만 원`;
+}
+const tk = (n) => (n >= 1e4 ? `${num(n / 1e4)}만 매` : `${num(n)}매`);
+const cnt = (n, u = "건") => `${num(n)}${u}`;
+const wonPer = (n) => `${num(n)}원`;
+const pctText = (v, d = 1) => `${v.toFixed(d)}%`;
+function delta(cur, prev) {
+  if (!prev) return "";
+  const r = (cur / prev - 1) * 100;
+  const cls = r > 0.05 ? "up" : r < -0.05 ? "down" : "flat";
+  return `<span class="delta ${cls}">${r > 0.05 ? "▲" : r < -0.05 ? "▼" : "■"} ${Math.abs(r).toFixed(1)}%<span class="sr"> ${cls === "up" ? "증가" : cls === "down" ? "감소" : "변동 없음"}</span></span>`;
+}
+const deltaPct = (r) => `<span class="delta ${r > 0 ? "up" : r < 0 ? "down" : "flat"}">${r > 0 ? "▲" : r < 0 ? "▼" : "■"} ${Math.abs(r).toFixed(1)}%</span>`;
+
+const METRICS = {
+  sales: { label: "티켓판매액", fmt: won, get: (o) => o.sales },
+  tickets: { label: "티켓예매수", fmt: tk, get: (o) => o.tickets },
+  shows: { label: "공연건수", fmt: (n) => cnt(n, "건"), get: (o) => o.shows },
+  sessions: { label: "공연회차", fmt: (n) => cnt(n, "회"), get: (o) => o.sessions },
+  price: { label: "티켓 1매당 평균", fmt: wonPer, get: (o) => o.sales / o.tickets },
+};
+function axisFmt(metric, v) {              // 축 눈금용 짧은 표기
+  if (!v) return "0";
+  if (metric === "sales") return v >= 1e12 ? `${+(v / 1e12).toFixed(1)}조` : `${num(v / 1e8)}억`;
+  if (metric === "tickets") return `${num(v / 1e4)}만`;
+  if (metric === "price") return num(v);
+  return num(v);
+}
+
+/* ---------- 툴팁 ---------- */
+const tipEl = $("tip");
+document.addEventListener("mousemove", (e) => {
+  const t = e.target.closest ? e.target.closest("[data-tip]") : null;
+  if (!t) { tipEl.style.display = "none"; return; }
+  tipEl.innerHTML = t.getAttribute("data-tip");
+  tipEl.style.display = "block";
+  const w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + w > window.innerWidth - 8) x = e.clientX - w - 14;
+  if (y + h > window.innerHeight - 8) y = e.clientY - h - 14;
+  tipEl.style.left = Math.max(8, x) + "px"; tipEl.style.top = Math.max(8, y) + "px";
+});
+const tipRow = (color, name, value) => `<div class="tr"><span>${color ? `<i style="background:${color}"></i>` : ""}${esc(name)}</span><b>${esc(value)}</b></div>`;
+
+/* ---------- 차트 ---------- */
+function niceMax(v) {                      // 눈금 4칸이 모두 깔끔한 수가 되도록 한 칸 간격을 먼저 고른다
+  if (v <= 0) return 4;
+  const raw = v / 4, p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const f = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((q) => q * p >= raw - 1e-9);
+  return f * p * 4;
+}
+function topRounded(x, y, w, h, r) {        // 위쪽만 둥근 막대(바닥은 직선)
+  r = Math.min(r, w / 2, h);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+function gridAndAxis(W, H, m, max, metric) {
+  let s = "";
+  for (let i = 0; i <= 4; i++) {
+    const y = m.t + (H - m.t - m.b) * (1 - i / 4);
+    s += `<line class="${i === 0 ? "base-line" : "grid-line"}" x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}"/>`;
+    s += `<text class="ax" x="${m.l - 8}" y="${y + 4}" text-anchor="end">${axisFmt(metric, max * i / 4)}</text>`;
+  }
+  return s;
+}
+function tableView(cats, series, fmtFn, head = "") {
+  const rows = cats.map((c, i) => `<tr><td>${esc(c)}</td>${series.map((s) => `<td class="num">${s.values[i] == null ? "–" : esc(fmtFn(s.values[i], s))}</td>`).join("")}</tr>`).join("");
+  return `<details class="tview"><summary>표로 보기</summary><div class="table-wrap"><table><thead><tr><th>${esc(head)}</th>${series.map((s) => `<th class="num">${esc(s.name)}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div></details>`;
+}
+function legendHtml(series, line) {
+  return series.length < 2 ? "" : `<div class="legend">${series.map((s) => `<span><i class="${line ? "line" : ""}" style="background:${s.color}"></i>${esc(s.name)}</span>`).join("")}</div>`;
+}
+
+function columnChart({ cats, values, metric, label, color }) {
+  const W = 640, H = 270, m = { l: 52, r: 14, t: 24, b: 28 }, pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const max = niceMax(Math.max(...values)), band = pw / cats.length, bw = Math.min(24, band * 0.5);
+  let s = gridAndAxis(W, H, m, max, metric);
+  values.forEach((v, i) => {
+    const h = ph * v / max, x = m.l + band * i + (band - bw) / 2, y = m.t + ph - h;
+    const tip = `<b>${esc(cats[i])}</b>${tipRow(color, label, METRICS[metric].fmt(v))}${i ? `<div class="tr"><span>전년 대비</span>${delta(v, values[i - 1])}</div>` : ""}`;
+    s += `<path class="bar" d="${topRounded(x, y, bw, h, 4)}" fill="${color}" data-tip="${esc(tip)}"/>`;
+    s += `<text class="val" x="${x + bw / 2}" y="${y - 7}" text-anchor="middle">${esc(METRICS[metric].fmt(v))}</text>`;
+    s += `<text class="ax" x="${x + bw / 2}" y="${H - 8}" text-anchor="middle">${esc(cats[i])}</text>`;
+  });
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)} 연도별 막대 차트">${s}</svg></div>`;
+}
+
+function stackedColumns({ cats, series, metric, totalLabel }) {
+  const W = 640, H = 290, m = { l: 52, r: 14, t: 16, b: 28 }, pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const totals = cats.map((_, i) => series.reduce((a, s) => a + (s.values[i] || 0), 0));
+  const max = niceMax(Math.max(...totals)), band = pw / cats.length, bw = Math.min(24, band * 0.5);
+  let s = gridAndAxis(W, H, m, max, metric);
+  cats.forEach((c, i) => {
+    let y = m.t + ph;
+    const x = m.l + band * i + (band - bw) / 2;
+    const live = series.filter((q) => q.values[i] > 0);
+    live.forEach((q, k) => {
+      const h = ph * q.values[i] / max, top = k === live.length - 1;
+      const seg = Math.max(h - (k < live.length - 1 ? 2 : 0), 0.5);   // 조각 사이 2px 표면색 간격
+      const tip = `<b>${esc(c)}</b>${tipRow(q.color, q.name, METRICS[metric].fmt(q.values[i]))}<div class="tr"><span>구성비</span><b>${pctText(q.values[i] / totals[i] * 100)}</b></div>`;
+      s += top ? `<path class="bar" d="${topRounded(x, y - h, bw, seg, 4)}" fill="${q.color}" data-tip="${esc(tip)}"/>`
+               : `<rect class="bar" x="${x}" y="${y - h + 2}" width="${bw}" height="${seg}" fill="${q.color}" data-tip="${esc(tip)}"/>`;
+      y -= h;
+    });
+    s += `<text class="val" x="${x + bw / 2}" y="${y - 7}" text-anchor="middle">${esc(METRICS[metric].fmt(totals[i]))}</text>`;
+    s += `<text class="ax" x="${x + bw / 2}" y="${H - 8}" text-anchor="middle">${esc(c)}</text>`;
+  });
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="연도별 구성 누적 막대 차트">${s}</svg></div>`;
+}
+
+function lineChart({ cats, series, metric, fmtFn, pctAxis, compact }) {
+  const labeled = series.length >= 2 && series.length <= 4;
+  const W = compact ? 440 : 640, H = compact ? 250 : 270, m = { l: 52, r: labeled ? 70 : 14, t: 18, b: 28 }, pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const all = series.flatMap((q) => q.values.filter((v) => v != null));
+  const max = pctAxis ? niceMax(Math.max(...all)) : niceMax(Math.max(...all)), min = 0;
+  const xs = cats.map((_, i) => m.l + (cats.length === 1 ? pw / 2 : pw * i / (cats.length - 1)));
+  const yOf = (v) => m.t + ph * (1 - (v - min) / (max - min));
+  let s = "";
+  for (let i = 0; i <= 4; i++) {
+    const y = m.t + ph * (1 - i / 4), v = max * i / 4;
+    s += `<line class="${i === 0 ? "base-line" : "grid-line"}" x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}"/>`;
+    s += `<text class="ax" x="${m.l - 8}" y="${y + 4}" text-anchor="end">${pctAxis ? `${+v.toFixed(0)}%` : axisFmt(metric, v)}</text>`;
+  }
+  const step = Math.ceil(cats.length / 12);
+  cats.forEach((c, i) => { if (i % step === 0) s += `<text class="ax" x="${xs[i]}" y="${H - 8}" text-anchor="middle">${esc(c)}</text>`; });
+  series.forEach((q) => {
+    const pts = q.values.map((v, i) => (v == null ? null : `${xs[i]},${yOf(v)}`)).filter(Boolean);
+    s += `<polyline points="${pts.join(" ")}" fill="none" stroke="${q.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const li = q.values.length - 1 - [...q.values].reverse().findIndex((v) => v != null);
+    s += `<circle cx="${xs[li]}" cy="${yOf(q.values[li])}" r="4" fill="${q.color}" stroke="var(--surface-1)" stroke-width="2"/>`;
+    if (labeled) s += `<text class="val" x="${xs[li] + 10}" y="${yOf(q.values[li]) + 4}">${esc(q.short || q.name)}</text>`;
+  });
+  const bandW = cats.length === 1 ? pw : pw / (cats.length - 1);
+  cats.forEach((c, i) => {
+    const tip = `<b>${esc(c)}</b>` + series.map((q) => (q.values[i] == null ? "" : tipRow(q.color, q.name, fmtFn(q.values[i])))).join("");
+    s += `<g class="xh"><line x1="${xs[i]}" x2="${xs[i]}" y1="${m.t}" y2="${m.t + ph}"/><rect class="hit" x="${xs[i] - bandW / 2}" y="${m.t}" width="${bandW}" height="${ph}" data-tip="${esc(tip)}"/></g>`;
+  });
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(series.map((q) => q.name).join(", "))} 추이 선 차트">${s}</svg></div>`;
+}
+
+function sparkline(values, color) {
+  const W = 280, H = 34, p = 4, max = Math.max(...values), min = Math.min(...values), span = max - min || 1;
+  const pts = values.map((v, i) => [p + (W - 2 * p) * i / (values.length - 1), H - p - (H - 2 * p) * (v - min) / span]);
+  const last = pts[pts.length - 1];
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts.map((q) => q.join(",")).join(" ")}" fill="none" stroke="var(--text-muted)" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5" fill="${color}" stroke="var(--surface-1)" stroke-width="2"/></svg>`;
+}
+
+function stackBars(rows) {   // rows: [{label, parts:[{name,color,value}]}] → 100% 가로 막대
+  return rows.map((r) => {
+    const tot = r.parts.reduce((a, p) => a + p.value, 0);
+    return `<div class="stackrow"><div class="sr-label">${esc(r.label)}</div><div class="stackbar">${r.parts.map((p) => {
+      const pc = p.value / tot * 100;
+      const tip = `<b>${esc(r.label)}</b>${tipRow(p.color, p.name, p.text)}<div class="tr"><span>구성비</span><b>${pctText(pc)}</b></div>`;
+      return `<span style="flex:${pc} 1 0;background:${p.color}" data-tip="${esc(tip)}">${pc >= 8 ? `<em>${pc.toFixed(0)}%</em>` : ""}</span>`;
+    }).join("")}</div></div>`;
+  }).join("");
+}
+
+function toolbar(group, label, options, current) {
+  return `<div class="toolbar" role="group" aria-label="${esc(label)}"><span class="tb-label">${esc(label)}</span>${options.map(([k, t]) => `<button type="button" class="seg${k === current ? " active" : ""}" data-group="${group}" data-key="${esc(k)}">${esc(t)}</button>`).join("")}</div>`;
+}
+
+/* ---------- 상태·장르 정의 ---------- */
+const ST = { scale: "sales", genre: "sales", regionYear: LATEST, region: "sales", month: "sales", venue: "sales", arenaGroup: "10000", arenaAll: false };
+const GENRES = [
+  { key: "연극", name: "연극", color: "var(--s1)" }, { key: "뮤지컬", name: "뮤지컬", color: "var(--s2)" },
+  { key: "서양음악", name: "클래식", color: "var(--s3)" }, { key: "한국음악", name: "국악", color: "var(--s4)" },
+  { key: "무용", name: "무용", color: "var(--s5)" }, { key: "대중음악", name: "대중음악", color: "var(--s6)" },
+];
+const OTHER = { key: "기타", name: "기타(서커스·대중무용·복합)", color: "var(--s7)" };
+function genreValue(g, y, metric) {
+  const o = MK.overall[y];
+  if (g.key !== "기타") { const v = MK.genres[g.key] && MK.genres[g.key][y]; return v ? METRICS[metric].get(v) : null; }
+  const known = GENRES.reduce((a, q) => a + (MK.genres[q.key][y] ? METRICS[metric].get(MK.genres[q.key][y]) : 0), 0);
+  return METRICS[metric].get(o) - known;
+}
+
+/* ---------- 섹션 렌더 ---------- */
+function renderHero() {
+  const o = MK.overall, L = o[LATEST], P = o[PREV], F = o[FIRST];
+  const mult = (a, b) => (a / b);
+  const tiles = [
+    { label: `티켓예매수 (${LATEST})`, value: tk(L.tickets), d: delta(L.tickets, P.tickets), vals: YEARS.map((y) => o[y].tickets), c: "var(--s1)" },
+    { label: `공연건수 (${LATEST})`, value: cnt(L.shows), d: delta(L.shows, P.shows), vals: YEARS.map((y) => o[y].shows), c: "var(--s1)" },
+    { label: `티켓 1매당 평균 (${LATEST})`, value: wonPer(L.sales / L.tickets), d: delta(L.sales / L.tickets, P.sales / P.tickets), vals: YEARS.map((y) => o[y].sales / o[y].tickets), c: "var(--s1)" },
+  ];
+  $("heroMount").innerHTML = `
+    <div class="eyebrow">KOPIS 공연예술통합전산망 · ${FIRST}–${LATEST} 공연시장 티켓판매</div>
+    <h1>공연시장, ${YEARS.length - 1}년 만에 ${mult(L.sales, F.sales).toFixed(1)}배</h1>
+    <p class="lede">${LATEST}년 전국 공연의 티켓판매액은 ${FIRST}년의 ${mult(L.sales, F.sales).toFixed(1)}배, 예매 매수는 ${mult(L.tickets, F.tickets).toFixed(1)}배가 됐습니다. 어느 장르가, 어느 지역이, 어떤 규모의 공연장이 이 성장을 이끌었는지 정리했습니다.</p>
+    <div class="t-label" style="font-size:13px;color:var(--text-muted)">${LATEST}년 티켓판매액</div>
+    <div class="hero-figure">${esc(won(L.sales))}</div>
+    <div class="hero-sub">${delta(L.sales, P.sales)}<span>전년(${PREV}년) ${esc(won(P.sales))}</span><span>·</span><span>${FIRST}년 ${esc(won(F.sales))}</span></div>
+    <div class="tiles">${tiles.map((t) => `<div class="tile"><div class="t-label">${esc(t.label)}</div><div class="t-value">${esc(t.value)}</div><div class="t-meta">${t.d}<span>전년 대비</span></div>${sparkline(t.vals, t.c)}</div>`).join("")}</div>
+    <div class="insights" id="insightMount"></div>`;
+  renderInsights();
+}
+
+function renderInsights() {
+  const L = MK.overall[LATEST], P = MK.overall[PREV];
+  const out = [];
+  const pa = (MK.snapshots[LATEST] || {}).popularArts;
+  if (pa && pa.popular) out.push(["수요의 무게중심", `대중예술(대중음악 등)은 티켓예매수의 <b>${pa.popular.sharePct.tickets}%</b>지만 판매액으로는 <b>${pa.popular.sharePct.sales}%</b>를 차지합니다. 한 장당 단가가 그만큼 높다는 뜻입니다.`]);
+  const gr = GENRES.map((g) => ({ g, r: (genreValue(g, LATEST, "sales") / genreValue(g, PREV, "sales") - 1) * 100 }));
+  const best = gr.reduce((a, b) => (b.r > a.r ? b : a)), worst = gr.reduce((a, b) => (b.r < a.r ? b : a));
+  const sg = (r) => `${r > 0 ? "+" : ""}${r.toFixed(1)}%`;
+  out.push(["장르별 온도차", `${LATEST}년 판매액이 가장 크게 늘어난 장르는 <b>${esc(best.g.name)}</b>(${sg(best.r)}), 가장 부진한 장르는 <b>${esc(worst.g.name)}</b>(${sg(worst.r)})입니다.`]);
+  const reg = (k, y) => ["서울", "경기", "인천"].reduce((a, r) => a + MK.regions[r][y][k], 0) / MK.regions["전국"][y][k] * 100;
+  out.push(["수도권 집중", `서울·경기·인천이 ${LATEST}년 티켓판매액의 <b>${reg("sales", LATEST).toFixed(1)}%</b>, 예매수의 ${reg("tickets", LATEST).toFixed(1)}%를 차지합니다. 공연건수(${reg("shows", LATEST).toFixed(1)}%)보다 수요가 더 쏠려 있습니다.`]);
+  const big = MK.venueSizes["1만 석 이상"];
+  if (big && big[FIRST] && big[LATEST]) out.push(["초대형 공연장", `1만 석 이상 공연장의 판매액은 ${FIRST}년 ${esc(won(big[FIRST].sales))}에서 ${LATEST}년 <b>${esc(won(big[LATEST].sales))}</b>(${(big[LATEST].sales / big[FIRST].sales).toFixed(1)}배)로 늘었습니다.`]);
+  const t10 = MK.top10Share[LATEST];
+  if (t10) out.push(["상위 공연 쏠림", `${LATEST}년 상위 10개 공연이 전체 판매액의 <b>${t10.ratioPct}%</b>를 차지했습니다(전년 ${(MK.top10Share[PREV] || {}).ratioPct}%).`]);
+  const ft = ((MK.snapshots[LATEST] || {}).features || []).find((f) => f.name === "내한 공연");
+  if (ft) out.push(["내한 공연", ft.yoyPct.shows < 0 && ft.yoyPct.sales > 0
+    ? `내한 공연은 공연건수가 ${Math.abs(ft.yoyPct.shows)}% 줄었지만 판매액은 <b>+${ft.yoyPct.sales}%</b> 늘었습니다. 적은 공연이 훨씬 큰 매출을 만들었습니다.`
+    : `내한 공연은 공연건수 ${ft.yoyPct.shows > 0 ? "+" : ""}${ft.yoyPct.shows}%, 판매액 ${ft.yoyPct.sales > 0 ? "+" : ""}${ft.yoyPct.sales}%를 기록했습니다.`]);
+  $("insightMount").innerHTML = out.map(([t, h]) => `<div class="insight"><span class="i-tag">${esc(t)}</span>${h}</div>`).join("");
+}
+
+function renderScale() {
+  const o = MK.overall, metric = ST.scale;
+  const vals = YEARS.map((y) => METRICS[metric].get(o[y]));
+  $("scaleSub").innerHTML = `${FIRST}년에서 ${LATEST}년까지 ${METRICS[metric].label}은 <b>${(vals[vals.length - 1] / vals[0]).toFixed(1)}배</b>가 됐습니다. 지표를 바꿔 공급(건수·회차)과 수요(예매수·판매액)를 비교해 보세요.`;
+  const series = [{ name: METRICS[metric].label, color: "var(--s1)", values: vals }];
+  $("scaleMount").innerHTML = toolbar("scale", "지표", Object.keys(METRICS).map((k) => [k, METRICS[k].label]), metric) +
+    `<div class="card"><h3>연도별 ${esc(METRICS[metric].label)}</h3><p class="c-sub">출처: KOPIS 공연시장 티켓판매 현황 분석 보고서</p>${columnChart({ cats: YEARS.map((y) => `${y}`), values: vals, metric, label: METRICS[metric].label, color: "var(--s1)" })}${tableView(YEARS.map(String), series, (v) => METRICS[metric].fmt(v), "연도")}</div>`;
+}
+
+function renderGenre() {
+  const metric = ST.genre, all = GENRES.concat([OTHER]);
+  const series = all.map((g) => ({ name: g.name, color: g.color, values: YEARS.map((y) => genreValue(g, y, metric)) }));
+  const yoy = GENRES.map((g) => ({ g, now: genreValue(g, LATEST, "sales"), prev: genreValue(g, PREV, "sales") }));
+  const rowsFor = (y) => [["shows", "공연건수"], ["tickets", "티켓예매수"], ["sales", "티켓판매액"]].map(([k, l]) => ({
+    label: l, parts: all.map((g) => ({ name: g.name, color: g.color, value: Math.max(genreValue(g, y, k), 0), text: METRICS[k].fmt(genreValue(g, y, k)) })),
+  }));
+  $("genreMount").innerHTML = `<div class="cols">
+    <div class="card"><h3>${LATEST}년 장르 구성: 건수·수요·매출</h3><p class="c-sub">같은 장르가 지표마다 얼마를 차지하는지</p>${stackBars(rowsFor(LATEST))}${legendHtml(all.map((g) => ({ name: g.name, color: g.color })))}</div>
+    <div class="card"><h3>${LATEST}년 판매액 증감 (전년 대비)</h3><p class="c-sub">${PREV}년 → ${LATEST}년</p><table><thead><tr><th>장르</th><th class="num">${LATEST}년</th><th class="num">증감</th></tr></thead><tbody>${yoy.map((q) => `<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${q.g.color};margin-right:6px"></i>${esc(q.g.name)}</td><td class="num">${esc(won(q.now))}</td><td class="num">${delta(q.now, q.prev)}</td></tr>`).join("")}</tbody></table></div>
+  </div>
+  <div style="height:14px"></div>
+  ${toolbar("genre", "지표", [["sales", "티켓판매액"], ["tickets", "티켓예매수"], ["shows", "공연건수"], ["sessions", "공연회차"]], metric)}
+  <div class="card"><h3>연도별 ${esc(METRICS[metric].label)}: 장르 구성</h3><p class="c-sub">막대 위 숫자는 합계</p>${stackedColumns({ cats: YEARS.map(String), series, metric })}${legendHtml(series)}${tableView(YEARS.map(String), series, (v) => METRICS[metric].fmt(v), "연도")}</div>`;
+}
+
+const REGION_ORDER = Object.keys(MAIN.koreaMap.paths);
+function renderRegion() {
+  const y = ST.regionYear, metric = ST.region;
+  const vals = REGION_ORDER.map((r) => (MK.regions[r] && MK.regions[r][y] ? METRICS[metric].get(MK.regions[r][y]) : 0));
+  const nat = METRICS[metric].get(MK.regions["전국"][y]);
+  const max = Math.max(...vals);
+  const step = (v) => Math.min(6, Math.floor(Math.sqrt(v / max) * 7));         // 제곱근 스케일 7단계
+  const bigRing = (d) => {                   // 섬 등 여러 조각 중 가장 큰 조각의 중심과 크기
+    let best = null;
+    d.split("M").filter(Boolean).forEach((seg) => {
+      const n = seg.match(/-?\d+(?:\.\d+)?/g).map(Number); let a = 1e9, b = 1e9, c = -1e9, e = -1e9;
+      for (let i = 0; i + 1 < n.length; i += 2) { a = Math.min(a, n[i]); c = Math.max(c, n[i]); b = Math.min(b, n[i + 1]); e = Math.max(e, n[i + 1]); }
+      const r = { x: (a + c) / 2, y: (b + e) / 2, area: (c - a) * (e - b) };
+      if (!best || r.area > best.area) best = r;
+    });
+    return best;
+  };
+  const paths = REGION_ORDER.map((r, i) => {
+    const v = vals[i], tip = `<b>${esc(r)}</b>${tipRow("", METRICS[metric].label, METRICS[metric].fmt(v))}<div class="tr"><span>전국 대비</span><b>${pctText(v / nat * 100)}</b></div>`;
+    return `<path d="${MAIN.koreaMap.paths[r]}" style="fill:var(--seq-${step(v) + 1})" data-tip="${esc(tip)}"/>`;
+  }).join("");
+  const NUDGE = { "경기": [6, 22] };         // 서울을 둘러싼 경기는 중심이 서울 위라 라벨을 아래로
+  const labels = REGION_ORDER.map((r) => { const b = bigRing(MAIN.koreaMap.paths[r]), n = NUDGE[r] || [0, 0]; return b.area >= 1800 ? `<text x="${b.x + n[0]}" y="${b.y + n[1]}" text-anchor="middle">${esc(r)}</text>` : ""; }).join("");
+  const order = REGION_ORDER.map((r, i) => i).sort((a, b) => vals[b] - vals[a]);
+  const prevY = YEARS[YEARS.indexOf(y) - 1];
+  const rank = order.map((i) => {
+    const r = REGION_ORDER[i], cur = vals[i], prv = prevY && MK.regions[r][prevY] ? METRICS[metric].get(MK.regions[r][prevY]) : null;
+    return `<span class="r-name">${esc(r)}</span><span class="r-bar"><span style="width:${cur / max * 100}%"></span></span><span class="r-val">${esc(METRICS[metric].fmt(cur))} · ${pctText(cur / nat * 100)} ${prv ? delta(cur, prv) : ""}</span>`;
+  }).join("");
+  const cap = ["서울", "경기", "인천"];
+  const capSeries = [{ name: "수도권(서울·경기·인천)", short: "수도권", color: "var(--s1)", values: YEARS.map((yy) => cap.reduce((a, r) => a + METRICS[metric].get(MK.regions[r][yy]), 0) / METRICS[metric].get(MK.regions["전국"][yy]) * 100) },
+                     { name: "서울", color: "var(--s2)", values: YEARS.map((yy) => METRICS[metric].get(MK.regions["서울"][yy]) / METRICS[metric].get(MK.regions["전국"][yy]) * 100) }];
+  $("regionMount").innerHTML = `${toolbar("regionYear", "연도", YEARS.slice().reverse().map((q) => [String(q), `${q}년`]), String(y))}${toolbar("region", "지표", [["sales", "티켓판매액"], ["tickets", "티켓예매수"], ["shows", "공연건수"], ["sessions", "공연회차"]], metric)}
+    <div class="card"><div class="mapbox"><div class="map"><svg viewBox="0 0 ${MAIN.koreaMap.width} ${MAIN.koreaMap.height}" role="img" aria-label="${y}년 시도별 ${esc(METRICS[metric].label)} 지도">${paths}${labels}</svg>
+      <div class="scale"><span>적음</span>${[1, 2, 3, 4, 5, 6, 7].map((n) => `<i style="background:var(--seq-${n})"></i>`).join("")}<span>많음 (제곱근 스케일)</span></div></div>
+      <div><h3>${y}년 ${esc(METRICS[metric].label)}: 시도별 · 전국 대비 비중</h3><p class="c-sub">전국 ${esc(METRICS[metric].fmt(nat))} · 괄호 옆은 전년 대비</p><div class="rank">${rank}</div></div></div></div>
+    <div style="height:14px"></div>
+    <div class="card"><h3>수도권이 차지하는 비중 (${esc(METRICS[metric].label)})</h3><p class="c-sub">${FIRST}–${LATEST}년, 전국 대비 %</p>${lineChart({ cats: YEARS.map(String), series: capSeries, metric, fmtFn: (v) => pctText(v), pctAxis: true })}${legendHtml(capSeries, true)}${tableView(YEARS.map(String), capSeries, (v) => pctText(v), "연도")}</div>`;
+}
+
+function renderMonth() {
+  const metric = ST.month, ys = Object.keys(MK.monthly).map(Number).sort((a, b) => a - b);
+  const cats = Array.from({ length: 12 }, (_, i) => `${i + 1}월`);
+  const colors = ["var(--s2)", "var(--s1)"];
+  const series = ys.map((yy, i) => ({ name: `${yy}년`, color: ys.length === 2 ? colors[i] : `var(--s${(i % 7) + 1})`, values: cats.map((_, m) => (MK.monthly[yy][m] ? METRICS[metric].get(MK.monthly[yy][m]) : null)) }));
+  const cur = series[series.length - 1], peak = cur.values.indexOf(Math.max(...cur.values)), low = cur.values.indexOf(Math.min(...cur.values));
+  $("monthSub").innerHTML = `${ys[ys.length - 1]}년 ${METRICS[metric].label}이 가장 컸던 달은 <b>${peak + 1}월</b>, 가장 작았던 달은 <b>${low + 1}월</b>입니다. 연말 특수가 해마다 반복됩니다.`;
+  $("monthMount").innerHTML = toolbar("month", "지표", [["sales", "티켓판매액"], ["tickets", "티켓예매수"], ["sessions", "공연회차"]], metric) +
+    `<div class="card"><h3>월별 ${esc(METRICS[metric].label)}</h3><p class="c-sub">${ys.join("·")}년 비교 · 공연일자 기준</p>${lineChart({ cats, series, metric, fmtFn: METRICS[metric].fmt })}${legendHtml(series, true)}${tableView(cats, series, (v) => METRICS[metric].fmt(v), "월")}</div>`;
+}
+
+const SIZES = ["1만 석 이상", "5,000석~1만 석 미만", "1,000석~5,000석 미만", "500석~1,000석 미만", "300석~500석 미만", "1석~300석 미만", "0석(좌석미상)"];
+function renderVenue() {
+  const metric = ST.venue, big = MK.venueSizes["1만 석 이상"];
+  const series = SIZES.map((s, i) => ({ name: s, color: `var(--s${i + 1})`, values: YEARS.map((y) => (MK.venueSizes[s] && MK.venueSizes[s][y] ? METRICS[metric].get(MK.venueSizes[s][y]) : 0)) }));
+  const m = METRICS[metric];
+  $("venueMount").innerHTML = `<div class="callout">1만 석 이상 공연장: ${FIRST}년 ${esc(m.fmt(m.get(big[FIRST])))} → ${LATEST}년 <b>${esc(m.fmt(m.get(big[LATEST])))}</b> (${(m.get(big[LATEST]) / m.get(big[FIRST])).toFixed(1)}배). 같은 기간 전체 시장은 ${(m.get(MK.overall[LATEST]) / m.get(MK.overall[FIRST])).toFixed(1)}배였습니다.</div>` +
+    toolbar("venue", "지표", [["sales", "티켓판매액"], ["tickets", "티켓예매수"], ["shows", "공연건수"], ["sessions", "공연회차"]], metric) +
+    `<div class="card"><h3>공연장 규모별 ${esc(m.label)}</h3><p class="c-sub">좌석수 구간, 아래부터 위로 쌓음 · 막대 위 숫자는 합계</p>${stackedColumns({ cats: YEARS.map(String), series: series.slice().reverse(), metric })}${legendHtml(series)}${tableView(YEARS.map(String), series, (v) => m.fmt(v), "연도")}</div>`;
+}
+
+function renderArena() {
+  const group = ST.arenaGroup, ys = MAIN.dashboardYears;
+  const active = MAIN.arenas.filter((a) => Math.max(...ys.map((y) => (a.byYear[y] ? a.byYear[y].tickets : 0))) >= 10000);   // 한 해라도 1만 매 이상
+  const pool = active.filter((a) => (group === "10000" ? a.seat >= 10000 : a.seat >= 5000 && a.seat < 10000));
+  const LIMIT = 12, list = ST.arenaAll ? pool : pool.slice(0, LIMIT);
+  const cnt10 = active.filter((a) => a.seat >= 10000).length, cnt5 = active.filter((a) => a.seat >= 5000 && a.seat < 10000).length;
+  const head = ys.map((y) => `<th class="num">${y} 티켓</th>`).join("") + ys.map((y) => `<th class="num">${y} 가동률</th>`).join("");
+  const rows = list.map((a) => {
+    const t = ys.map((y) => `<td class="num">${a.byYear[y] ? esc(tk(a.byYear[y].tickets)) : "–"}</td>`).join("");
+    const c = ys.map((y) => `<td class="num">${a.byYear[y] && a.byYear[y].calendarOcc != null ? a.byYear[y].calendarOcc.toFixed(1) + "%" : "–"}</td>`).join("");
+    return `<tr><td class="wrap-ok"><b>${esc(a.hall)}</b><br><span style="font-size:12px;color:var(--text-muted)">${esc(a.facility)} · ${esc(a.sido)}</span></td><td class="num">${num(a.seat)}석</td>${t}${c}<td>${a.href ? `<a class="link-btn" href="${esc(a.href)}">상세</a>` : ""}</td></tr>`;
+  }).join("");
+  const big = MK.venueSizes["1만 석 이상"];
+  $("arenaMount").innerHTML = `<div class="callout">시장 전체에서 1만 석 이상 공연장은 ${LATEST}년 <b>${cnt(big[LATEST].shows)}</b>의 공연으로 <b>${esc(won(big[LATEST].sales))}</b>의 티켓판매액을 냈습니다(${FIRST}년 ${cnt(big[FIRST].shows)}, ${esc(won(big[FIRST].sales))}). 아래는 이 사이트가 집계한 공연장별 값입니다.</div>
+    ${toolbar("arenaGroup", "좌석수", [["10000", `1만 석 이상 (${cnt10}곳)`], ["5000", `5,000~9,999석 (${cnt5}곳)`]], group)}
+    <div class="card"><div class="table-wrap"><table><thead><tr><th>공연장</th><th class="num">좌석</th>${head}<th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${pool.length > LIMIT ? `<div style="margin-top:10px"><button type="button" class="seg" data-group="arenaAll" data-key="x">${ST.arenaAll ? "접기" : `전체 ${pool.length}곳 보기`}</button></div>` : ""}
+    <p class="c-sub" style="margin-top:8px">좌석수는 KOPIS 등록값이라 경기장·전시장도 포함됩니다. 세 해 중 한 해라도 티켓이 1만 매 이상 팔린 곳만 싣고 티켓이 많은 순으로 정렬했습니다. 캘린더가동률은 공연기간에 준비 3일·철수 1일을 더해 센 추정치(실제 가동일이 아님)이며, 해당 연도에 실적이 없으면 –입니다.</p></div>`;
+}
+
+function renderTop() {
+  const snap = MK.snapshots[LATEST] || {}, top = MAIN.topPerformances || [], t10 = MK.top10Share;
+  const t10Years = Object.keys(t10).map(Number).sort((a, b) => a - b);
+  const ser = [{ name: "상위 10개 공연의 판매 비중", color: "var(--s1)", values: t10Years.map((y) => t10[y].ratioPct) }];
+  const feats = snap.features || [];
+  $("topMount").innerHTML = `<p class="block-sub">${LATEST}년 티켓판매액 상위 20개 공연입니다(보고서 순위). 시설명이 이 사이트의 시설과 확인되면 공연장 대시보드로 이어집니다.</p>
+    <div class="cols">
+      <div class="card"><h3>${LATEST}년 티켓판매액 상위 20</h3><div class="table-wrap"><table><thead><tr><th class="num">#</th><th>공연</th><th>공연장</th><th class="num">좌석</th></tr></thead><tbody>${top.map((r) => `<tr><td class="num">${r.rank}</td><td class="wrap-ok"><b>${esc(r.title)}</b><br><span class="chip">${esc(r.genre)}${r.subgenre ? " · " + esc(r.subgenre) : ""}</span> <span style="font-size:12px;color:var(--text-muted)">${esc(r.from)} ~ ${esc(r.to)}</span></td><td class="wrap-ok">${r.href ? `<a href="${esc(r.href)}">${esc(r.venue)}</a>` : esc(r.venue)}<br><span style="font-size:12px;color:var(--text-muted)">${esc(r.region)}</span></td><td class="num">${r.seats ? num(r.seats) + "석" : "좌석 미상"}</td></tr>`).join("")}</tbody></table></div></div>
+      <div>
+        <div class="card"><h3>상위 10개 공연의 판매 비중</h3><p class="c-sub">전체 티켓판매액 대비 %, 높을수록 쏠림</p>${lineChart({ cats: t10Years.map(String), series: ser, metric: "sales", fmtFn: (v) => pctText(v), pctAxis: true, compact: true })}${tableView(t10Years.map(String), ser, (v) => pctText(v), "연도")}</div>
+        <div style="height:14px"></div>
+        <div class="card"><h3>${LATEST}년 공연 특성별 변화</h3><p class="c-sub">전년 대비 증감 (한 공연이 여러 특성에 속할 수 있음)</p><div class="table-wrap"><table><thead><tr><th>특성</th><th class="num">건수</th><th class="num">판매액</th></tr></thead><tbody>${feats.map((f) => `<tr><td>${esc(f.name)}</td><td class="num">${num(f.shows)} ${deltaPct(f.yoyPct.shows)}</td><td class="num">${esc(won(f.sales))} ${deltaPct(f.yoyPct.sales)}</td></tr>`).join("")}</tbody></table></div></div>
+      </div></div>`;
+}
+
+function renderDash() {
+  $("dashMount").innerHTML = `<div class="dash-cards">${MAIN.dashboards.map((d) => `<a class="dash-card" href="${esc(d.year)}/index.html"><span class="d-go">열기 →</span><div class="d-year">${d.year}년</div><dl><dt>공연시설</dt><dd>${num(d.facilities)}곳</dd><dt>관(공연장)</dt><dd>${num(d.halls)}개</dd><dt>집계 티켓</dt><dd>${esc(tk(d.tickets))}</dd><dt>평균 캘린더가동률</dt><dd>${d.avgCalendarOcc == null ? "–" : d.avgCalendarOcc.toFixed(1) + "%"}</dd></dl></a>`).join("")}</div>`;
+  const rows = MAIN.dashboards.filter((d) => MK.overall[d.year]).map((d) => {
+    const o = MK.overall[d.year];
+    return `<tr><td>${d.year}년</td><td class="num">${num(o.tickets)}</td><td class="num">${num(d.tickets)}</td><td class="num">${pctText(d.tickets / o.tickets * 100)}</td><td class="num">${num(o.shows)}</td><td class="num">${num(d.performances)}</td></tr>`;
+  }).join("");
+  $("reconMount").innerHTML = `<div class="card" style="margin-top:14px"><h3>두 가지 집계는 이렇게 다릅니다</h3><p class="c-sub">시장 전체(KOPIS 공식 보고서)와 이 사이트의 공연장 단위 집계</p><div class="table-wrap"><table><thead><tr><th>연도</th><th class="num">티켓예매수 (공식)</th><th class="num">티켓 (공연장 집계)</th><th class="num">집계 / 공식</th><th class="num">공연건수 (공식)</th><th class="num">공연 (공연장 집계)</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="c-sub" style="margin-top:8px">공연장 집계는 좌석 정보가 있는 공연장만 합산하고 공연목록은 KOPIS 공개 API 기준이라 공식 보고서보다 작게 나옵니다. 증감 방향은 같지만, 시장 전체 규모는 공식 보고서 숫자를 기준으로 보세요.</p></div>`;
+}
+
+function renderAbout() {
+  const reps = MK.reports.slice().sort((a, b) => a.reportYear - b.reportYear);
+  $("aboutMount").innerHTML = `<ul class="notes">
+    <li><b>시장 전체 숫자</b>(티켓판매액·예매수·공연건수·회차, 장르·지역·공연장 규모·월별)는 ${reps.map((r) => `「${esc(r.title)}」(${esc(r.publisher)}${r.extractedOn ? `, 데이터 추출 ${esc(r.extractedOn)}` : ""})`).join(", ")}에서 가져온 값입니다. 전산 발권된 전국 공연 예매·취소 데이터(${reps[reps.length - 1].connectedSystems || "–"}개 연계기관)를 공연일자 기준으로 집계한 것이며, 추출일에 따라 값이 조금 달라질 수 있습니다. 보고서의 해설 문장과 도표는 가져오지 않고 숫자만 사용했습니다.</li>
+    <li><b>공연장별 숫자</b>(좌석점유율·캘린더가동률·관별 공연목록)는 KOPIS 공개 API로 이 사이트가 직접 집계합니다. 시설 주소·지역·관 목록은 연도별 자료가 아니라 현재 KOPIS 시설 정보 기준입니다.</li>
+    <li>장르 구분은 2023년 1월 개편되어 이전 보고서와 다를 수 있고, 2019년 6월 「공연법」 시행 이후 데이터가 더 정확합니다. 성장 배수는 기준 연도(첫 해)의 규모가 작을수록 크게 보입니다.</li>
+    <li>"기타" 장르는 전체에서 6개 장르를 뺀 값(서커스/마술·대중무용·복합)입니다. 수도권은 서울·경기·인천입니다.</li>
+    <li>이 페이지는 KOPIS·예술경영지원센터의 공식 페이지가 아닙니다. 인용할 때는 원 보고서의 출처를 함께 밝혀 주세요. 새 연도 자료는 보고서가 나오는 대로 추가합니다.</li></ul>`;
+  $("footMount").innerHTML = `출처: KOPIS(공연예술통합전산망) · (재)예술경영지원센터. 페이지 생성 ${esc(MAIN.generatedAt)} · 반영된 시장 통계 ${FIRST}–${LATEST}년, 공연장 대시보드 ${MAIN.dashboardYears.slice().reverse().join("·")}년.`;
+}
+
+function renderAll() { renderHero(); renderScale(); renderGenre(); renderRegion(); renderMonth(); renderVenue(); renderArena(); renderTop(); renderDash(); renderAbout(); }
+
+/* ---------- 이벤트·테마·메뉴 ---------- */
+const RERENDER = { scale: renderScale, genre: renderGenre, region: renderRegion, regionYear: renderRegion, month: renderMonth, venue: renderVenue, arenaGroup: renderArena, arenaAll: renderArena };
+document.addEventListener("click", (e) => {
+  const b = e.target.closest ? e.target.closest("[data-group]") : null;
+  if (b) { const g = b.dataset.group; ST[g] = g === "regionYear" ? Number(b.dataset.key) : g === "arenaAll" ? !ST.arenaAll : b.dataset.key; RERENDER[g](); return; }
+  if (e.target.closest && e.target.closest("#themeToggle")) toggleTheme();
+});
+let userTheme = null;
+try { userTheme = localStorage.getItem("kopis-theme"); } catch (e) {}
+function applyTheme() {
+  if (userTheme) document.documentElement.setAttribute("data-theme", userTheme); else document.documentElement.removeAttribute("data-theme");
+  const dark = userTheme ? userTheme === "dark" : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  $("themeToggle").textContent = dark ? "☀️" : "🌙";
+}
+function toggleTheme() {
+  const dark = userTheme ? userTheme === "dark" : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  userTheme = dark ? "light" : "dark";
+  try { localStorage.setItem("kopis-theme", userTheme); } catch (e) {}
+  applyTheme();
+}
+const menu = $("dashMenu");
+menu.innerHTML = `<option value="">공연장 대시보드…</option>` + MAIN.dashboards.map((d) => `<option value="${esc(d.year)}/index.html">${d.year}년 대시보드</option>`).join("");
+menu.addEventListener("change", () => { if (menu.value) location.href = menu.value; });
+
+applyTheme();
+renderAll();
+</script>
+</body>
+</html>

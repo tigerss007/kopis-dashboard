@@ -1,0 +1,1648 @@
+{
+ "_note": "web/extract_market_report.py가 KOPIS 보고서 PDF에서 뽑아 병합한 값. 직접 고치지 말고 스크립트로 다시 만들 것. 금액 단위는 원.",
+ "genres": {
+  "대중음악": {
+   "2021": {
+    "sales": 86135123586,
+    "sessions": 2446,
+    "shows": 1587,
+    "tickets": 889734
+   },
+   "2022": {
+    "sales": 453585657188,
+    "sessions": 4745,
+    "shows": 3071,
+    "tickets": 4356709
+   },
+   "2023": {
+    "sales": 576557399111,
+    "sessions": 5898,
+    "shows": 3615,
+    "tickets": 5158205
+   },
+   "2024": {
+    "sales": 761033139075,
+    "sessions": 6592,
+    "shows": 3997,
+    "tickets": 6372880
+   },
+   "2025": {
+    "sales": 981722864461,
+    "sessions": 7749,
+    "shows": 4677,
+    "tickets": 7642999
+   }
+  },
+  "무용": {
+   "2021": {
+    "sales": 7102972210,
+    "sessions": 1191,
+    "shows": 656,
+    "tickets": 289775
+   },
+   "2022": {
+    "sales": 14594266310,
+    "sessions": 1446,
+    "shows": 783,
+    "tickets": 539587
+   },
+   "2023": {
+    "sales": 18841866812,
+    "sessions": 1536,
+    "shows": 820,
+    "tickets": 591032
+   },
+   "2024": {
+    "sales": 20632748062,
+    "sessions": 1604,
+    "shows": 841,
+    "tickets": 604780
+   },
+   "2025": {
+    "sales": 26727514389,
+    "sessions": 2003,
+    "shows": 995,
+    "tickets": 707621
+   }
+  },
+  "뮤지컬": {
+   "2021": {
+    "sales": 234464589843,
+    "sessions": 20777,
+    "shows": 1565,
+    "tickets": 3801881
+   },
+   "2022": {
+    "sales": 424918289375,
+    "sessions": 32175,
+    "shows": 2756,
+    "tickets": 7330817
+   },
+   "2023": {
+    "sales": 459051394869,
+    "sessions": 38950,
+    "shows": 3191,
+    "tickets": 8053854
+   },
+   "2024": {
+    "sales": 465229668656,
+    "sessions": 40194,
+    "shows": 2986,
+    "tickets": 7839953
+   },
+   "2025": {
+    "sales": 498858462615,
+    "sessions": 46072,
+    "shows": 3402,
+    "tickets": 8539744
+   }
+  },
+  "서양음악": {
+   "2021": {
+    "sales": 37998979631,
+    "sessions": 6127,
+    "shows": 5499,
+    "tickets": 1345760
+   },
+   "2022": {
+    "sales": 67881328175,
+    "sessions": 7682,
+    "shows": 6921,
+    "tickets": 2469083
+   },
+   "2023": {
+    "sales": 99940345255,
+    "sessions": 8878,
+    "shows": 7762,
+    "tickets": 3083521
+   },
+   "2024": {
+    "sales": 101003545363,
+    "sessions": 9870,
+    "shows": 8109,
+    "tickets": 3293161
+   },
+   "2025": {
+    "sales": 83607518560,
+    "sessions": 10813,
+    "shows": 8378,
+    "tickets": 3331120
+   }
+  },
+  "연극": {
+   "2021": {
+    "sales": 25342029446,
+    "sessions": 30344,
+    "shows": 1958,
+    "tickets": 1480431
+   },
+   "2022": {
+    "sales": 46195082169,
+    "sessions": 42452,
+    "shows": 2588,
+    "tickets": 2810484
+   },
+   "2023": {
+    "sales": 62999967026,
+    "sessions": 49346,
+    "shows": 2727,
+    "tickets": 2711129
+   },
+   "2024": {
+    "sales": 73945598536,
+    "sessions": 51521,
+    "shows": 2902,
+    "tickets": 2857990
+   },
+   "2025": {
+    "sales": 78132191576,
+    "sessions": 56700,
+    "shows": 3453,
+    "tickets": 2988471
+   }
+  },
+  "한국음악": {
+   "2021": {
+    "sales": 2363432180,
+    "sessions": 1541,
+    "shows": 842,
+    "tickets": 168277
+   },
+   "2022": {
+    "sales": 6161087670,
+    "sessions": 2003,
+    "shows": 1092,
+    "tickets": 374835
+   },
+   "2023": {
+    "sales": 4712335660,
+    "sessions": 1985,
+    "shows": 1190,
+    "tickets": 412370
+   },
+   "2024": {
+    "sales": 5034344302,
+    "sessions": 2150,
+    "shows": 1369,
+    "tickets": 452244
+   },
+   "2025": {
+    "sales": 4841973810,
+    "sessions": 2368,
+    "shows": 1426,
+    "tickets": 489967
+   }
+  }
+ },
+ "monthly": {
+  "2024": [
+   {
+    "month": 1,
+    "sales": 106794017000,
+    "sessions": 9553,
+    "shows": 1214,
+    "tickets": 1615098
+   },
+   {
+    "month": 2,
+    "sales": 84313331000,
+    "sessions": 8520,
+    "shows": 1236,
+    "tickets": 1365898
+   },
+   {
+    "month": 3,
+    "sales": 103269121000,
+    "sessions": 9039,
+    "shows": 1825,
+    "tickets": 1611535
+   },
+   {
+    "month": 4,
+    "sales": 94220375000,
+    "sessions": 8572,
+    "shows": 1773,
+    "tickets": 1486040
+   },
+   {
+    "month": 5,
+    "sales": 138996464000,
+    "sessions": 10244,
+    "shows": 2046,
+    "tickets": 2046203
+   },
+   {
+    "month": 6,
+    "sales": 116126189000,
+    "sessions": 10175,
+    "shows": 2202,
+    "tickets": 1869791
+   },
+   {
+    "month": 7,
+    "sales": 116076277000,
+    "sessions": 10077,
+    "shows": 1974,
+    "tickets": 1861563
+   },
+   {
+    "month": 8,
+    "sales": 149783076000,
+    "sessions": 12154,
+    "shows": 2137,
+    "tickets": 2202316
+   },
+   {
+    "month": 9,
+    "sales": 118861576000,
+    "sessions": 9261,
+    "shows": 2051,
+    "tickets": 1723183
+   },
+   {
+    "month": 10,
+    "sales": 106750713000,
+    "sessions": 10622,
+    "shows": 2480,
+    "tickets": 1858157
+   },
+   {
+    "month": 11,
+    "sales": 111814856000,
+    "sessions": 10606,
+    "shows": 2612,
+    "tickets": 1838180
+   },
+   {
+    "month": 12,
+    "sales": 211871733000,
+    "sessions": 13856,
+    "shows": 2864,
+    "tickets": 2888870
+   }
+  ],
+  "2025": [
+   {
+    "month": 1,
+    "sales": 120531855000,
+    "sessions": 10803,
+    "shows": 1196,
+    "tickets": 1603097
+   },
+   {
+    "month": 2,
+    "sales": 86461577000,
+    "sessions": 9621,
+    "shows": 1467,
+    "tickets": 1401461
+   },
+   {
+    "month": 3,
+    "sales": 118348609000,
+    "sessions": 9929,
+    "shows": 2009,
+    "tickets": 1731730
+   },
+   {
+    "month": 4,
+    "sales": 143529408000,
+    "sessions": 9927,
+    "shows": 2044,
+    "tickets": 1902999
+   },
+   {
+    "month": 5,
+    "sales": 141762191000,
+    "sessions": 11932,
+    "shows": 2293,
+    "tickets": 2156528
+   },
+   {
+    "month": 6,
+    "sales": 132395231000,
+    "sessions": 10769,
+    "shows": 2385,
+    "tickets": 1936877
+   },
+   {
+    "month": 7,
+    "sales": 176634091000,
+    "sessions": 11451,
+    "shows": 2190,
+    "tickets": 2262698
+   },
+   {
+    "month": 8,
+    "sales": 173714121000,
+    "sessions": 13788,
+    "shows": 2463,
+    "tickets": 2400687
+   },
+   {
+    "month": 9,
+    "sales": 111899708000,
+    "sessions": 10344,
+    "shows": 2488,
+    "tickets": 1883215
+   },
+   {
+    "month": 10,
+    "sales": 137063448000,
+    "sessions": 11055,
+    "shows": 2340,
+    "tickets": 2034352
+   },
+   {
+    "month": 11,
+    "sales": 160193147000,
+    "sessions": 12191,
+    "shows": 3092,
+    "tickets": 2357854
+   },
+   {
+    "month": 12,
+    "sales": 230108659000,
+    "sessions": 14769,
+    "shows": 3143,
+    "tickets": 3105973
+   }
+  ]
+ },
+ "overall": {
+  "2021": {
+   "sales": 400036680018,
+   "sessions": 65946,
+   "shows": 12481,
+   "tickets": 8138901
+  },
+  "2022": {
+   "sales": 1028479885424,
+   "sessions": 97622,
+   "shows": 17930,
+   "tickets": 18344627
+  },
+  "2023": {
+   "sales": 1269697581810,
+   "sessions": 116587,
+   "shows": 20404,
+   "tickets": 20968889
+  },
+  "2024": {
+   "sales": 1458877727536,
+   "sessions": 122679,
+   "shows": 21538,
+   "tickets": 22366834
+  },
+  "2025": {
+   "sales": 1732642045563,
+   "sessions": 136579,
+   "shows": 23608,
+   "tickets": 24777471
+  }
+ },
+ "regions": {
+  "강원": {
+   "2021": {
+    "sales": 1777404000,
+    "sessions": 554,
+    "shows": 277,
+    "tickets": 74390
+   },
+   "2022": {
+    "sales": 12190654000,
+    "sessions": 997,
+    "shows": 441,
+    "tickets": 272826
+   },
+   "2023": {
+    "sales": 10877938000,
+    "sessions": 883,
+    "shows": 485,
+    "tickets": 271799
+   },
+   "2024": {
+    "sales": 16600656000,
+    "sessions": 1141,
+    "shows": 557,
+    "tickets": 311121
+   },
+   "2025": {
+    "sales": 8367982000,
+    "sessions": 1180,
+    "shows": 610,
+    "tickets": 279590
+   }
+  },
+  "경기": {
+   "2021": {
+    "sales": 22371697000,
+    "sessions": 3651,
+    "shows": 1452,
+    "tickets": 657392
+   },
+   "2022": {
+    "sales": 76403947000,
+    "sessions": 7505,
+    "shows": 2408,
+    "tickets": 1752539
+   },
+   "2023": {
+    "sales": 81879688000,
+    "sessions": 9477,
+    "shows": 2696,
+    "tickets": 2000581
+   },
+   "2024": {
+    "sales": 127883421000,
+    "sessions": 10618,
+    "shows": 2911,
+    "tickets": 2560279
+   },
+   "2025": {
+    "sales": 251263551000,
+    "sessions": 11360,
+    "shows": 3114,
+    "tickets": 3300965
+   }
+  },
+  "경남": {
+   "2021": {
+    "sales": 5332063000,
+    "sessions": 825,
+    "shows": 346,
+    "tickets": 133730
+   },
+   "2022": {
+    "sales": 19978409000,
+    "sessions": 1456,
+    "shows": 642,
+    "tickets": 381199
+   },
+   "2023": {
+    "sales": 16483154000,
+    "sessions": 2053,
+    "shows": 671,
+    "tickets": 401007
+   },
+   "2024": {
+    "sales": 21623995000,
+    "sessions": 2467,
+    "shows": 785,
+    "tickets": 476670
+   },
+   "2025": {
+    "sales": 15630594000,
+    "sessions": 2668,
+    "shows": 817,
+    "tickets": 444090
+   }
+  },
+  "경북": {
+   "2021": {
+    "sales": 2066812000,
+    "sessions": 916,
+    "shows": 404,
+    "tickets": 124631
+   },
+   "2022": {
+    "sales": 8926028000,
+    "sessions": 1140,
+    "shows": 513,
+    "tickets": 291958
+   },
+   "2023": {
+    "sales": 10927028000,
+    "sessions": 1298,
+    "shows": 620,
+    "tickets": 384100
+   },
+   "2024": {
+    "sales": 12916281000,
+    "sessions": 1136,
+    "shows": 560,
+    "tickets": 369864
+   },
+   "2025": {
+    "sales": 9852440000,
+    "sessions": 1345,
+    "shows": 609,
+    "tickets": 408661
+   }
+  },
+  "광주": {
+   "2021": {
+    "sales": 4430408000,
+    "sessions": 1106,
+    "shows": 303,
+    "tickets": 115449
+   },
+   "2022": {
+    "sales": 15429055000,
+    "sessions": 1679,
+    "shows": 407,
+    "tickets": 296685
+   },
+   "2023": {
+    "sales": 16499159000,
+    "sessions": 2061,
+    "shows": 504,
+    "tickets": 365965
+   },
+   "2024": {
+    "sales": 30051255000,
+    "sessions": 2096,
+    "shows": 536,
+    "tickets": 441291
+   },
+   "2025": {
+    "sales": 28372499000,
+    "sessions": 2111,
+    "shows": 560,
+    "tickets": 450611
+   }
+  },
+  "대구": {
+   "2021": {
+    "sales": 23332002000,
+    "sessions": 3023,
+    "shows": 885,
+    "tickets": 447263
+   },
+   "2022": {
+    "sales": 50656317000,
+    "sessions": 4580,
+    "shows": 1119,
+    "tickets": 923508
+   },
+   "2023": {
+    "sales": 60840572000,
+    "sessions": 5212,
+    "shows": 1195,
+    "tickets": 1063050
+   },
+   "2024": {
+    "sales": 56573882000,
+    "sessions": 5012,
+    "shows": 1280,
+    "tickets": 1008395
+   },
+   "2025": {
+    "sales": 56616420000,
+    "sessions": 6310,
+    "shows": 1422,
+    "tickets": 1029402
+   }
+  },
+  "대전": {
+   "2021": {
+    "sales": 3588183000,
+    "sessions": 1420,
+    "shows": 464,
+    "tickets": 96369
+   },
+   "2022": {
+    "sales": 21450275000,
+    "sessions": 2030,
+    "shows": 624,
+    "tickets": 346357
+   },
+   "2023": {
+    "sales": 22545369000,
+    "sessions": 2663,
+    "shows": 693,
+    "tickets": 384023
+   },
+   "2024": {
+    "sales": 29404955000,
+    "sessions": 3213,
+    "shows": 681,
+    "tickets": 442379
+   },
+   "2025": {
+    "sales": 26567969000,
+    "sessions": 3221,
+    "shows": 761,
+    "tickets": 407343
+   }
+  },
+  "부산": {
+   "2021": {
+    "sales": 24388969000,
+    "sessions": 3169,
+    "shows": 770,
+    "tickets": 404221
+   },
+   "2022": {
+    "sales": 63392482000,
+    "sessions": 4306,
+    "shows": 1105,
+    "tickets": 937626
+   },
+   "2023": {
+    "sales": 89616832000,
+    "sessions": 5251,
+    "shows": 1269,
+    "tickets": 1134699
+   },
+   "2024": {
+    "sales": 82679040000,
+    "sessions": 5243,
+    "shows": 1287,
+    "tickets": 1090843
+   },
+   "2025": {
+    "sales": 101702152000,
+    "sessions": 5465,
+    "shows": 1381,
+    "tickets": 1296343
+   }
+  },
+  "서울": {
+   "2021": {
+    "sales": 293335226000,
+    "sessions": 46118,
+    "shows": 5970,
+    "tickets": 5529132
+   },
+   "2022": {
+    "sales": 681083172000,
+    "sessions": 64991,
+    "shows": 8103,
+    "tickets": 11460195
+   },
+   "2023": {
+    "sales": 864478546000,
+    "sessions": 77138,
+    "shows": 9404,
+    "tickets": 12955990
+   },
+   "2024": {
+    "sales": 950311500000,
+    "sessions": 80508,
+    "shows": 9936,
+    "tickets": 13454736
+   },
+   "2025": {
+    "sales": 1050432520000,
+    "sessions": 90860,
+    "shows": 10981,
+    "tickets": 14418399
+   }
+  },
+  "세종": {
+   "2021": {
+    "sales": 264847000,
+    "sessions": 63,
+    "shows": 41,
+    "tickets": 12406
+   },
+   "2022": {
+    "sales": 2582149000,
+    "sessions": 206,
+    "shows": 118,
+    "tickets": 67030
+   },
+   "2023": {
+    "sales": 3609680000,
+    "sessions": 363,
+    "shows": 180,
+    "tickets": 103946
+   },
+   "2024": {
+    "sales": 3364169000,
+    "sessions": 285,
+    "shows": 177,
+    "tickets": 92927
+   },
+   "2025": {
+    "sales": 4668835000,
+    "sessions": 362,
+    "shows": 185,
+    "tickets": 111995
+   }
+  },
+  "울산": {
+   "2021": {
+    "sales": 2922545000,
+    "sessions": 425,
+    "shows": 196,
+    "tickets": 67866
+   },
+   "2022": {
+    "sales": 7001158000,
+    "sessions": 824,
+    "shows": 275,
+    "tickets": 171330
+   },
+   "2023": {
+    "sales": 7249691000,
+    "sessions": 1220,
+    "shows": 303,
+    "tickets": 214551
+   },
+   "2024": {
+    "sales": 11419444000,
+    "sessions": 1398,
+    "shows": 341,
+    "tickets": 245492
+   },
+   "2025": {
+    "sales": 8682092000,
+    "sessions": 1227,
+    "shows": 353,
+    "tickets": 217507
+   }
+  },
+  "인천": {
+   "2021": {
+    "sales": 3866940000,
+    "sessions": 1249,
+    "shows": 413,
+    "tickets": 111800
+   },
+   "2022": {
+    "sales": 27423232000,
+    "sessions": 1991,
+    "shows": 658,
+    "tickets": 469903
+   },
+   "2023": {
+    "sales": 37668040000,
+    "sessions": 2077,
+    "shows": 682,
+    "tickets": 592631
+   },
+   "2024": {
+    "sales": 76144279000,
+    "sessions": 2176,
+    "shows": 681,
+    "tickets": 823965
+   },
+   "2025": {
+    "sales": 131023728000,
+    "sessions": 2695,
+    "shows": 796,
+    "tickets": 1202343
+   }
+  },
+  "전국": {
+   "2021": {
+    "sales": 400036680000,
+    "sessions": 65946,
+    "shows": 12481,
+    "tickets": 8138901
+   },
+   "2022": {
+    "sales": 1028479885000,
+    "sessions": 97622,
+    "shows": 17930,
+    "tickets": 18344627
+   },
+   "2023": {
+    "sales": 1269697582000,
+    "sessions": 116587,
+    "shows": 20404,
+    "tickets": 20968889
+   },
+   "2024": {
+    "sales": 1458877728000,
+    "sessions": 122679,
+    "shows": 21538,
+    "tickets": 22366834
+   },
+   "2025": {
+    "sales": 1732642046000,
+    "sessions": 136579,
+    "shows": 23608,
+    "tickets": 24777471
+   }
+  },
+  "전남": {
+   "2021": {
+    "sales": 2344778000,
+    "sessions": 763,
+    "shows": 156,
+    "tickets": 67393
+   },
+   "2022": {
+    "sales": 9417063000,
+    "sessions": 709,
+    "shows": 281,
+    "tickets": 205575
+   },
+   "2023": {
+    "sales": 7677320000,
+    "sessions": 1217,
+    "shows": 292,
+    "tickets": 198488
+   },
+   "2024": {
+    "sales": 5592052000,
+    "sessions": 1834,
+    "shows": 364,
+    "tickets": 202382
+   },
+   "2025": {
+    "sales": 6218394000,
+    "sessions": 1604,
+    "shows": 391,
+    "tickets": 255084
+   }
+  },
+  "전북": {
+   "2021": {
+    "sales": 4187176000,
+    "sessions": 774,
+    "shows": 259,
+    "tickets": 104357
+   },
+   "2022": {
+    "sales": 12255628000,
+    "sessions": 1302,
+    "shows": 340,
+    "tickets": 234181
+   },
+   "2023": {
+    "sales": 16249303000,
+    "sessions": 1531,
+    "shows": 418,
+    "tickets": 300433
+   },
+   "2024": {
+    "sales": 12375967000,
+    "sessions": 1478,
+    "shows": 476,
+    "tickets": 272537
+   },
+   "2025": {
+    "sales": 12711417000,
+    "sessions": 1694,
+    "shows": 516,
+    "tickets": 303507
+   }
+  },
+  "제주": {
+   "2021": {
+    "sales": 1116696000,
+    "sessions": 881,
+    "shows": 140,
+    "tickets": 57011
+   },
+   "2022": {
+    "sales": 4828418000,
+    "sessions": 2190,
+    "shows": 222,
+    "tickets": 152881
+   },
+   "2023": {
+    "sales": 4329516000,
+    "sessions": 1996,
+    "shows": 264,
+    "tickets": 150601
+   },
+   "2024": {
+    "sales": 5065532000,
+    "sessions": 1700,
+    "shows": 205,
+    "tickets": 128440
+   },
+   "2025": {
+    "sales": 4110338000,
+    "sessions": 1972,
+    "shows": 295,
+    "tickets": 156308
+   }
+  },
+  "충남": {
+   "2021": {
+    "sales": 1822154000,
+    "sessions": 646,
+    "shows": 324,
+    "tickets": 86129
+   },
+   "2022": {
+    "sales": 7596345000,
+    "sessions": 982,
+    "shows": 476,
+    "tickets": 239373
+   },
+   "2023": {
+    "sales": 10206505000,
+    "sessions": 1068,
+    "shows": 497,
+    "tickets": 289136
+   },
+   "2024": {
+    "sales": 7451649000,
+    "sessions": 1067,
+    "shows": 498,
+    "tickets": 278298
+   },
+   "2025": {
+    "sales": 8093273000,
+    "sessions": 1133,
+    "shows": 530,
+    "tickets": 312727
+   }
+  },
+  "충북": {
+   "2021": {
+    "sales": 2888779000,
+    "sessions": 363,
+    "shows": 81,
+    "tickets": 49362
+   },
+   "2022": {
+    "sales": 7865553000,
+    "sessions": 734,
+    "shows": 198,
+    "tickets": 141461
+   },
+   "2023": {
+    "sales": 8559240000,
+    "sessions": 1079,
+    "shows": 231,
+    "tickets": 157889
+   },
+   "2024": {
+    "sales": 9419652000,
+    "sessions": 1307,
+    "shows": 263,
+    "tickets": 167215
+   },
+   "2025": {
+    "sales": 8327841000,
+    "sessions": 1372,
+    "shows": 287,
+    "tickets": 182596
+   }
+  }
+ },
+ "reports": [
+  {
+   "connectedSystems": 201,
+   "extractedOn": "2026-02-02",
+   "id": "kopis-market-2025",
+   "publisher": "(재)예술경영지원센터 공연정보팀 (KOPIS 공연예술통합전산망)",
+   "reportYear": 2025,
+   "title": "2025년 공연시장 티켓판매 현황 분석 보고서"
+  }
+ ],
+ "snapshots": {
+  "2025": {
+   "features": [
+    {
+     "avgPerShow": 21320851,
+     "avgPerTicket": 22787,
+     "name": "아동 공연",
+     "sales": 81509613131,
+     "sessions": 29891,
+     "shows": 3823,
+     "tickets": 3577076,
+     "yoyPct": {
+      "sales": 9.1,
+      "sessions": 6.7,
+      "shows": 11.4,
+      "tickets": 11.3
+     }
+    },
+    {
+     "avgPerShow": 218363939,
+     "avgPerTicket": 118231,
+     "name": "내한 공연",
+     "sales": 276230382230,
+     "sessions": 2396,
+     "shows": 1265,
+     "tickets": 2336369,
+     "yoyPct": {
+      "sales": 106.4,
+      "sessions": -7.4,
+      "shows": -24.4,
+      "tickets": 37.8
+     }
+    },
+    {
+     "avgPerShow": 80313277,
+     "avgPerTicket": 31904,
+     "name": "대학로 공연",
+     "sales": 110591382250,
+     "sessions": 53943,
+     "shows": 1377,
+     "tickets": 3466335,
+     "yoyPct": {
+      "sales": 11.0,
+      "sessions": 11.5,
+      "shows": 9.9,
+      "tickets": 8.7
+     }
+    },
+    {
+     "avgPerShow": 148721648,
+     "avgPerTicket": 19018,
+     "name": "오픈런",
+     "sales": 28703278008,
+     "sessions": 45837,
+     "shows": 193,
+     "tickets": 1509299,
+     "yoyPct": {
+      "sales": -3.9,
+      "sessions": 9.9,
+      "shows": -11.5,
+      "tickets": 0.4
+     }
+    },
+    {
+     "avgPerShow": 38903204,
+     "avgPerTicket": 57753,
+     "name": "축제",
+     "sales": 95468461628,
+     "sessions": 5356,
+     "shows": 2454,
+     "tickets": 1653041,
+     "yoyPct": {
+      "sales": 54.9,
+      "sessions": 15.1,
+      "shows": 17.4,
+      "tickets": 28.2
+     }
+    }
+   ],
+   "popularArts": {
+    "all": {
+     "sales": 1732642046000,
+     "sessions": 136579,
+     "sharePct": {
+      "sales": 100.0,
+      "sessions": 100.0,
+      "shows": 100.0,
+      "tickets": 100.0
+     },
+     "shows": 23608,
+     "tickets": 24777471,
+     "yoyPct": {
+      "sales": 18.8,
+      "sessions": 11.3,
+      "shows": 9.6,
+      "tickets": 10.8
+     }
+    },
+    "other": {
+     "sales": 695246344000,
+     "sessions": 118589,
+     "sharePct": {
+      "sales": 40.1,
+      "sessions": 86.8,
+      "shows": 76.3,
+      "tickets": 65.6
+     },
+     "shows": 18021,
+     "tickets": 16243433,
+     "yoyPct": {
+      "sales": 4.0,
+      "sessions": 11.5,
+      "shows": 8.2,
+      "tickets": 6.3
+     }
+    },
+    "popular": {
+     "sales": 1037395702000,
+     "sessions": 17990,
+     "sharePct": {
+      "sales": 59.9,
+      "sessions": 13.2,
+      "shows": 23.7,
+      "tickets": 34.4
+     },
+     "shows": 5587,
+     "tickets": 8534038,
+     "yoyPct": {
+      "sales": 31.3,
+      "sessions": 10.4,
+      "shows": 14.3,
+      "tickets": 20.3
+     }
+    }
+   },
+   "topPerformances": [
+    {
+     "from": "2025-04-16",
+     "genre": "대중음악",
+     "rank": 1,
+     "region": "경기",
+     "seats": 43000,
+     "subgenre": "내한",
+     "title": "콜드플레이 내한공연 [고양]",
+     "to": "2025-04-25",
+     "venue": "고양종합운동장 주경기장"
+    },
+    {
+     "from": "2024-11-17",
+     "genre": "뮤지컬",
+     "rank": 2,
+     "region": "서울",
+     "seats": 1230,
+     "subgenre": "라이선스",
+     "title": "알라딘",
+     "to": "2025-06-22",
+     "venue": "샤롯데씨어터"
+    },
+    {
+     "from": "2025-10-11",
+     "genre": "서커스/마술",
+     "rank": 3,
+     "region": "서울",
+     "seats": 2400,
+     "subgenre": null,
+     "title": "태양의서커스, 쿠자 [서울]",
+     "to": "2025-12-28",
+     "venue": "잠실종합운동장 빅탑"
+    },
+    {
+     "from": "2024-11-29",
+     "genre": "뮤지컬",
+     "rank": 4,
+     "region": "서울",
+     "seats": 1766,
+     "subgenre": "라이선스",
+     "title": "지킬앤하이드",
+     "to": "2025-05-18",
+     "venue": "블루스퀘어 신한카드홀 (구. 인터파크홀)"
+    },
+    {
+     "from": "2025-07-12",
+     "genre": "뮤지컬",
+     "rank": 5,
+     "region": "서울",
+     "seats": 1766,
+     "subgenre": "내한",
+     "title": "위키드 내한 공연",
+     "to": "2025-10-26",
+     "venue": "블루스퀘어 신한카드홀 (구. 인터파크홀)"
+    },
+    {
+     "from": "2025-05-31",
+     "genre": "뮤지컬",
+     "rank": 6,
+     "region": "서울",
+     "seats": 3022,
+     "subgenre": "라이선스",
+     "title": "팬텀",
+     "to": "2025-08-11",
+     "venue": "세종문화회관 세종대극장"
+    },
+    {
+     "from": "2025-07-11",
+     "genre": "뮤지컬",
+     "rank": 7,
+     "region": "부산",
+     "seats": 1727,
+     "subgenre": "라이선스",
+     "title": "알라딘 [부산]",
+     "to": "2025-09-28",
+     "venue": "드림씨어터 [부산]"
+    },
+    {
+     "from": "2025-05-09",
+     "genre": "대중음악",
+     "rank": 8,
+     "region": "서울",
+     "seats": 15000,
+     "subgenre": "아이돌",
+     "title": "DAY6 3RD WORLD TOUR: FOREVER YOUNG FINALE [서울]",
+     "to": "2025-05-18",
+     "venue": "올림픽공원 KSPO DOME(체조경기장)"
+    },
+    {
+     "from": "2025-01-09",
+     "genre": "뮤지컬",
+     "rank": 9,
+     "region": "서울",
+     "seats": 2283,
+     "subgenre": "창작",
+     "title": "웃는 남자",
+     "to": "2025-03-09",
+     "venue": "예술의전당 [서울] 오페라극장"
+    },
+    {
+     "from": "2025-07-05",
+     "genre": "대중음악",
+     "rank": 10,
+     "region": "경기",
+     "seats": 43000,
+     "subgenre": "아이돌",
+     "title": "BLACKPINK WORLD TOUR [고양]",
+     "to": "2025-07-06",
+     "venue": "고양종합운동장 주경기장"
+    },
+    {
+     "from": "2025-11-08",
+     "genre": "대중음악",
+     "rank": 11,
+     "region": "서울",
+     "seats": 15000,
+     "subgenre": "브랜딩공연",
+     "title": "김동률 콘서트: 산책",
+     "to": "2025-11-16",
+     "venue": "올림픽공원 KSPO DOME(체조경기장)"
+    },
+    {
+     "from": "2025-07-18",
+     "genre": "대중음악",
+     "rank": 12,
+     "region": "경기",
+     "seats": 0,
+     "subgenre": "브랜딩공연",
+     "title": "싸이흠뻑쇼: SUMMERSWAG [과천]",
+     "to": "2025-07-20",
+     "venue": "과천 서울대공원 주차광장"
+    },
+    {
+     "from": "2025-06-17",
+     "genre": "뮤지컬",
+     "rank": 13,
+     "region": "서울",
+     "seats": 1250,
+     "subgenre": "창작",
+     "title": "멤피스",
+     "to": "2025-09-21",
+     "venue": "충무아트센터 대극장"
+    },
+    {
+     "from": "2025-10-21",
+     "genre": "대중음악",
+     "rank": 14,
+     "region": "경기",
+     "seats": 43000,
+     "subgenre": "내한",
+     "title": "오아시스 내한공연 [고양]",
+     "to": "2025-10-21",
+     "venue": "고양종합운동장 주경기장"
+    },
+    {
+     "from": "2025-09-27",
+     "genre": "뮤지컬",
+     "rank": 15,
+     "region": "서울",
+     "seats": 1230,
+     "subgenre": "라이선스",
+     "title": "미세스 다웃파이어 [서울]",
+     "to": "2025-12-07",
+     "venue": "샤롯데씨어터"
+    },
+    {
+     "from": "2025-11-21",
+     "genre": "대중음악",
+     "rank": 16,
+     "region": "서울",
+     "seats": 15000,
+     "subgenre": "브랜딩공연",
+     "title": "임영웅 콘서트: IM HERO TOUR [서울]",
+     "to": "2025-11-30",
+     "venue": "올림픽공원 KSPO DOME(체조경기장)"
+    },
+    {
+     "from": "2025-08-15",
+     "genre": "대중음악",
+     "rank": 17,
+     "region": "부산",
+     "seats": 4549,
+     "subgenre": "브랜딩공연",
+     "title": "싸이흠뻑쇼: SUMMERSWAG [부산]",
+     "to": "2025-08-16",
+     "venue": "부산아시아드 보조경기장"
+    },
+    {
+     "from": "2025-07-26",
+     "genre": "뮤지컬",
+     "rank": 18,
+     "region": "서울",
+     "seats": 1335,
+     "subgenre": "라이선스",
+     "title": "맘마미아! [서울]",
+     "to": "2025-10-25",
+     "venue": "LG아트센터 서울 LG SIGNATURE 홀"
+    },
+    {
+     "from": "2025-01-21",
+     "genre": "뮤지컬",
+     "rank": 19,
+     "region": "서울",
+     "seats": 3022,
+     "subgenre": "창작",
+     "title": "명성황후",
+     "to": "2025-03-30",
+     "venue": "세종문화회관 세종대극장"
+    },
+    {
+     "from": "2025-08-21",
+     "genre": "서커스/마술",
+     "rank": 20,
+     "region": "부산",
+     "seats": 0,
+     "subgenre": null,
+     "title": "태양의서커스, 쿠자 [부산]",
+     "to": "2025-09-28",
+     "venue": "신세계 문화홀 [센텀시티] 빅탑"
+    }
+   ]
+  }
+ },
+ "top10Share": {
+  "2021": {
+   "all": 400036680018,
+   "ratioPct": 21.6,
+   "top10": 86547070522
+  },
+  "2022": {
+   "all": 1028479885424,
+   "ratioPct": 14.6,
+   "top10": 149946876039
+  },
+  "2023": {
+   "all": 1269697581810,
+   "ratioPct": 13.3,
+   "top10": 169156656959
+  },
+  "2024": {
+   "all": 1458877727536,
+   "ratioPct": 10.6,
+   "top10": 154004165514
+  },
+  "2025": {
+   "all": 1732642045563,
+   "ratioPct": 14.1,
+   "top10": 244833877837
+  }
+ },
+ "units": {
+  "sales": "원",
+  "sessions": "회",
+  "shows": "건",
+  "tickets": "매"
+ },
+ "venueSizes": {
+  "0석(좌석미상)": {
+   "2021": {
+    "sales": 1698516000,
+    "sessions": 1156,
+    "shows": 257,
+    "tickets": 36476
+   },
+   "2022": {
+    "sales": 32332217000,
+    "sessions": 4157,
+    "shows": 641,
+    "tickets": 442040
+   },
+   "2023": {
+    "sales": 44832609000,
+    "sessions": 6569,
+    "shows": 1038,
+    "tickets": 562122
+   },
+   "2024": {
+    "sales": 88719658000,
+    "sessions": 9275,
+    "shows": 1471,
+    "tickets": 902622
+   },
+   "2025": {
+    "sales": 133652924000,
+    "sessions": 12848,
+    "shows": 1961,
+    "tickets": 1432200
+   }
+  },
+  "1,000석~5,000석 미만": {
+   "2021": {
+    "sales": 273781577000,
+    "sessions": 7111,
+    "shows": 2223,
+    "tickets": 3723282
+   },
+   "2022": {
+    "sales": 536351512000,
+    "sessions": 9939,
+    "shows": 3404,
+    "tickets": 7241752
+   },
+   "2023": {
+    "sales": 641314791000,
+    "sessions": 10955,
+    "shows": 3792,
+    "tickets": 8277630
+   },
+   "2024": {
+    "sales": 652176156000,
+    "sessions": 10384,
+    "shows": 4037,
+    "tickets": 8251706
+   },
+   "2025": {
+    "sales": 670090525000,
+    "sessions": 10487,
+    "shows": 4013,
+    "tickets": 8334988
+   }
+  },
+  "1만 석 이상": {
+   "2021": {
+    "sales": 20608874000,
+    "sessions": 48,
+    "shows": 16,
+    "tickets": 157197
+   },
+   "2022": {
+    "sales": 180203559000,
+    "sessions": 243,
+    "shows": 94,
+    "tickets": 1569327
+   },
+   "2023": {
+    "sales": 261131289000,
+    "sessions": 245,
+    "shows": 115,
+    "tickets": 2048869
+   },
+   "2024": {
+    "sales": 376740862000,
+    "sessions": 302,
+    "shows": 145,
+    "tickets": 2798003
+   },
+   "2025": {
+    "sales": 532049239000,
+    "sessions": 365,
+    "shows": 159,
+    "tickets": 3595035
+   }
+  },
+  "1석~300석 미만": {
+   "2021": {
+    "sales": 29248712000,
+    "sessions": 40808,
+    "shows": 4260,
+    "tickets": 1673792
+   },
+   "2022": {
+    "sales": 63639289000,
+    "sessions": 58318,
+    "shows": 5869,
+    "tickets": 3434373
+   },
+   "2023": {
+    "sales": 73936081000,
+    "sessions": 70007,
+    "shows": 6840,
+    "tickets": 3395810
+   },
+   "2024": {
+    "sales": 81666288000,
+    "sessions": 72976,
+    "shows": 7083,
+    "tickets": 3460068
+   },
+   "2025": {
+    "sales": 89403628000,
+    "sessions": 80216,
+    "shows": 7838,
+    "tickets": 3647796
+   }
+  },
+  "300석~500석 미만": {
+   "2021": {
+    "sales": 32713094000,
+    "sessions": 9050,
+    "shows": 2688,
+    "tickets": 1157496
+   },
+   "2022": {
+    "sales": 60465009000,
+    "sessions": 12657,
+    "shows": 3696,
+    "tickets": 2144583
+   },
+   "2023": {
+    "sales": 80478470000,
+    "sessions": 15570,
+    "shows": 4195,
+    "tickets": 2720965
+   },
+   "2024": {
+    "sales": 78604415000,
+    "sessions": 16405,
+    "shows": 4141,
+    "tickets": 2784345
+   },
+   "2025": {
+    "sales": 92585715000,
+    "sessions": 17560,
+    "shows": 4618,
+    "tickets": 3122973
+   }
+  },
+  "5,000석~1만 석 미만": {
+   "2021": {
+    "sales": 10398009000,
+    "sessions": 46,
+    "shows": 20,
+    "tickets": 86553
+   },
+   "2022": {
+    "sales": 77047309000,
+    "sessions": 218,
+    "shows": 121,
+    "tickets": 596613
+   },
+   "2023": {
+    "sales": 80671534000,
+    "sessions": 227,
+    "shows": 112,
+    "tickets": 666529
+   },
+   "2024": {
+    "sales": 82544982000,
+    "sessions": 257,
+    "shows": 121,
+    "tickets": 648529
+   },
+   "2025": {
+    "sales": 88962319000,
+    "sessions": 202,
+    "shows": 95,
+    "tickets": 635440
+   }
+  },
+  "500석~1,000석 미만": {
+   "2021": {
+    "sales": 31587898000,
+    "sessions": 7727,
+    "shows": 3022,
+    "tickets": 1304105
+   },
+   "2022": {
+    "sales": 78440991000,
+    "sessions": 12090,
+    "shows": 4105,
+    "tickets": 2915939
+   },
+   "2023": {
+    "sales": 87332807000,
+    "sessions": 13014,
+    "shows": 4312,
+    "tickets": 3296964
+   },
+   "2024": {
+    "sales": 98425366000,
+    "sessions": 13080,
+    "shows": 4540,
+    "tickets": 3521561
+   },
+   "2025": {
+    "sales": 125897696000,
+    "sessions": 14901,
+    "shows": 4924,
+    "tickets": 4009039
+   }
+  },
+  "전체": {
+   "2021": {
+    "sales": 400036680000,
+    "sessions": 65946,
+    "shows": 12486,
+    "tickets": 8138901
+   },
+   "2022": {
+    "sales": 1028479885000,
+    "sessions": 97622,
+    "shows": 17930,
+    "tickets": 18344627
+   },
+   "2023": {
+    "sales": 1269697582000,
+    "sessions": 116587,
+    "shows": 20404,
+    "tickets": 20968889
+   },
+   "2024": {
+    "sales": 1458877728000,
+    "sessions": 122679,
+    "shows": 21538,
+    "tickets": 22366834
+   },
+   "2025": {
+    "sales": 1732642046000,
+    "sessions": 136579,
+    "shows": 23608,
+    "tickets": 24777471
+   }
+  }
+ },
+ "yearSource": {
+  "2021": "kopis-market-2025",
+  "2022": "kopis-market-2025",
+  "2023": "kopis-market-2025",
+  "2024": "kopis-market-2025",
+  "2025": "kopis-market-2025"
+ }
+}

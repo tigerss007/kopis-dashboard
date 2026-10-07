@@ -33,26 +33,23 @@ WEB_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = WEB_DIR / "template.html"
 KOREA_PATHS_PATH = WEB_DIR / "korea_paths.json"
 
-# 연도별 페이지: 최신 연도(ROOT_YEAR)는 web/index.html, 나머지는 web/<연도>/index.html.
-# GitHub Pages 주소가 바뀌지 않도록 기존 루트 페이지(2025)를 그대로 둔다.
-ALL_YEARS = [2025, 2024, 2023]
-ROOT_YEAR = 2025
+# 연도별 대시보드는 web/<연도>/index.html, 메인(시장 동향) 페이지는 web/index.html(build_main.py).
+from site_config import ALL_YEARS  # noqa: E402
+
+SUMMARY_DIR = WEB_DIR / "data"  # 메인 페이지가 읽는 연도별 요약(summary_<연도>.json)
+LARGE_HALL_SEATS = 5000  # 메인의 "아레나·초대형 공연장" 표에 싣는 최소 좌석수
 
 
 def _output_path(year: int) -> Path:
-    return WEB_DIR / "index.html" if year == ROOT_YEAR else WEB_DIR / str(year) / "index.html"
+    return WEB_DIR / str(year) / "index.html"
 
 
 def _year_links(current_year: int) -> list[dict]:
-    """현재 페이지에서 각 연도 페이지로 가는 상대 경로(file://과 GitHub Pages 모두에서 동작)."""
-    up = "" if current_year == ROOT_YEAR else "../"
-    return [
-        {"year": y, "href": up + ("index.html" if y == ROOT_YEAR else f"{y}/index.html")}
-        for y in ALL_YEARS
-    ]
+    """각 연도 페이지로 가는 상대 경로(file://과 GitHub Pages 모두에서 동작). 모든 연도 페이지는 같은 깊이다."""
+    return [{"year": y, "href": f"../{y}/index.html"} for y in ALL_YEARS]
 
 
-YEAR = ROOT_YEAR
+YEAR = ALL_YEARS[0]
 OUTPUT_PATH = _output_path(YEAR)
 
 
@@ -417,6 +414,42 @@ def compute_calendar_occupancy(facilities: list[dict]) -> None:
             h["calendarOcc"] = round(h["occupiedDays"] / YEAR_DAYS * 100, 1)
 
 
+def write_summary(facilities: list[dict]) -> Path:
+    """메인 페이지(build_main.py)가 쓰는 연도별 요약을 web/data/summary_<연도>.json에 쓴다."""
+    halls = []
+    for i, f in enumerate(facilities):  # i는 페이지의 f.idx와 같다(#/facility/<i>)
+        for h in f["halls"]:
+            halls.append((i, f, h))
+    occ = [h["occ"] for _, _, h in halls if h["occ"] is not None]
+    cal = [h["calendarOcc"] for _, _, h in halls if h["calendarOcc"] is not None]
+    perf = sum(len(h["perf"]) for _, _, h in halls) + sum(len(f["perf"]) for f in facilities)
+    summary = {
+        "year": YEAR,
+        "facilities": len(facilities),
+        "halls": len(halls),
+        "performances": perf,
+        "tickets": sum(h["tickets"] for _, _, h in halls),
+        "seats": sum(h["seat"] for _, _, h in halls),
+        "closedFacilities": sum(1 for f in facilities if f.get("closed")),
+        "avgCalendarOcc": round(sum(cal) / len(cal), 1) if cal else None,
+        "avgSeatOcc": round(sum(occ) / len(occ), 1) if occ else None,
+        "facilityNames": [f["name"] for f in facilities],  # 인덱스 = 페이지의 f.idx (메인에서 시설 링크용)
+        "largeHalls": [
+            {
+                "facility": f["name"], "hall": h["name"], "sido": f["sido"], "gugun": f["gugun"],
+                "seat": h["seat"], "tickets": h["tickets"], "occ": h["occ"],
+                "calendarOcc": h.get("calendarOcc"), "runDays": h.get("runDays"),
+                "facilityIdx": i, "hallIdx": h["idx"], "closed": bool(f.get("closed")),
+            }
+            for i, f, h in halls if h["seat"] >= LARGE_HALL_SEATS
+        ],
+    }
+    SUMMARY_DIR.mkdir(parents=True, exist_ok=True)
+    path = SUMMARY_DIR / f"summary_{YEAR}.json"
+    path.write_text(json.dumps(summary, ensure_ascii=False, indent=1), encoding="utf-8")
+    return path
+
+
 def main():
     client = KopisClient()
     cache = ResponseCache(CACHE_DIR)
@@ -459,6 +492,7 @@ def main():
         "year": YEAR,
         "yearDays": YEAR_DAYS,
         "years": _year_links(YEAR),
+        "mainHref": "../index.html",
         "setupDays": SETUP_DAYS,
         "teardownDays": TEARDOWN_DAYS,
         "facilities": facilities,
@@ -471,6 +505,7 @@ def main():
     output = template.replace("__KOPIS_DATA__", data_json)
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(output, encoding="utf-8")
+    summary_path = write_summary(facilities)
 
     size_mb = OUTPUT_PATH.stat().st_size / (1024 * 1024)
     hall_perf = sum(len(h["perf"]) for f in facilities for h in f["halls"])
@@ -481,13 +516,13 @@ def main():
         len(facilities), len(rows), hall_perf + unmatched_perf, hall_perf, unmatched_perf,
     )
     logger.info("지역 미상 시설 수: %d", len(set(unmatched_region)))
-    logger.info("출력 파일: %s (%.2f MB)", OUTPUT_PATH, size_mb)
+    logger.info("출력 파일: %s (%.2f MB), 요약: %s", OUTPUT_PATH, size_mb, summary_path)
 
 
 if __name__ == "__main__":
-    # 사용법: python web/build_site_data.py [연도 ...]   (생략하면 2025)
+    # 사용법: python web/build_site_data.py [연도 ...]   (생략하면 최신 연도)
     # 예) python web/build_site_data.py 2024 2023  — 연도별로 순서대로 빌드한다.
-    years = [int(a) for a in sys.argv[1:]] or [ROOT_YEAR]
+    years = [int(a) for a in sys.argv[1:]] or [ALL_YEARS[0]]
     for y in years:
         if y not in ALL_YEARS:
             raise SystemExit(f"지원하지 않는 연도: {y} (ALL_YEARS={ALL_YEARS})")
